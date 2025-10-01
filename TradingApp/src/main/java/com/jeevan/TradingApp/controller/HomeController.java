@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class HomeController {
     @GetMapping("/home")
     public String Home(){
-
         return "welcome to TradingApp";
     }
     @GetMapping("/api")
