@@ -101,5 +101,4 @@ public class UserController {
             }
             throw new Exception("wrong otp");
     }
-
 }
