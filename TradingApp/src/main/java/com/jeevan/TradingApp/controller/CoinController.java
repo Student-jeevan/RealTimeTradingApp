@@ -34,7 +34,7 @@ public class CoinController {
         return new ResponseEntity<>(jsonNode , HttpStatus.ACCEPTED);
 
     }
-    
+
     @GetMapping("/search")
     ResponseEntity<JsonNode> searchCoin(@RequestParam("q") String keyword) throws Exception {
         String coin = coinService.searchCoin(keyword);
