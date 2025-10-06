@@ -4,6 +4,7 @@ import com.jeevan.TradingApp.modal.Order;
 import com.jeevan.TradingApp.modal.User;
 import com.jeevan.TradingApp.modal.Wallet;
 import com.jeevan.TradingApp.modal.WalletTransaction;
+import com.jeevan.TradingApp.service.OrderService;
 import com.jeevan.TradingApp.service.UserService;
 import com.jeevan.TradingApp.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,9 @@ import org.springframework.web.bind.annotation.*;
 public class WalletController {
     @Autowired
     private WalletService walletService;
+
+    @Autowired
+    OrderService orderService;
 
     @Autowired
     private UserService userService;
