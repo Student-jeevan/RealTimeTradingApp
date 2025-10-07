@@ -3,7 +3,9 @@ package com.jeevan.TradingApp.repository;
 import com.jeevan.TradingApp.modal.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 public interface OrderRepository extends JpaRepository<Order , Long> {
-    Order findByUserId(Long userId);
+    List<Order> findByUserId(Long userId);
 
 }

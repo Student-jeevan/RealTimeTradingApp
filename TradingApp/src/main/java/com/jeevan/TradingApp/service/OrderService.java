@@ -10,8 +10,8 @@ import java.util.List;
 
 public interface OrderService {
     Order createOrder(User user , OrderItem orderItem , OrderType orderType);
-    Order getOrderById(Long orderId);
+    Order getOrderById(Long orderId) throws Exception;
     List<Order> getAllOrderUser(Long userId , OrderType orderType , String assetSymbol);
-    Order processOrder(Coin coin , double quantity , OrderType orderType , User user);
+    Order processOrder(Coin coin , double quantity , OrderType orderType , User user) throws Exception;
 
 }
