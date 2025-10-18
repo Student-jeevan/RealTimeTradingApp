@@ -38,6 +38,7 @@ public class PaymentServiceImpl implements PaymentService{
         paymentOrder.setUser(user);
         paymentOrder.setAmount(amount);
         paymentOrder.setPaymentMethod(paymentMethod);
+        paymentOrder.setStatus(PaymentOrderStatus.PENDING);
 
         return paymentOrderRepository.save(paymentOrder);
     }
@@ -50,6 +51,9 @@ public class PaymentServiceImpl implements PaymentService{
 
     @Override
     public Boolean ProceedPaymentOrder(PaymentOrder paymentOrder, String paymentId) throws RazorpayException {
+        if(paymentOrder.getStatus() == null){
+            paymentOrder.setStatus(PaymentOrderStatus.PENDING);
+        }
         if(paymentOrder.getStatus().equals(PaymentOrderStatus.PENDING)){
             if(paymentOrder.getPaymentMethod().equals(PaymentMethod.RAZORPAY)){
                 RazorpayClient razorpay = new RazorpayClient(apiKey , apiSecretKey);
@@ -58,12 +62,15 @@ public class PaymentServiceImpl implements PaymentService{
                 Integer amount = payment.get("amount");
 
                 String status = payment.get("status");
-                if(status.equals("captured")){
+                if (status.equals("captured")) {
                     paymentOrder.setStatus(PaymentOrderStatus.SUCCESS);
+                    paymentOrderRepository.save(paymentOrder);
+                    return true;
+                } else {
+                    paymentOrder.setStatus(PaymentOrderStatus.FAILED);
+                    paymentOrderRepository.save(paymentOrder);
+                    return false;
                 }
-                paymentOrder.setStatus(PaymentOrderStatus.FAILED);
-                paymentOrderRepository.save(paymentOrder);
-                return false;
             }
             paymentOrder.setStatus(PaymentOrderStatus.SUCCESS);
             paymentOrderRepository.save(paymentOrder);
@@ -73,7 +80,7 @@ public class PaymentServiceImpl implements PaymentService{
     }
 
     @Override
-    public PaymentResponse createRazorpayPaymentLink(User user, Long amount) throws RazorpayException {
+    public PaymentResponse createRazorpayPaymentLink(User user, Long amount , Long orderId) throws RazorpayException {
        Long Amount  = amount*100;
        try{
            RazorpayClient razorpay  = new RazorpayClient(apiKey , apiSecretKey);
@@ -91,7 +98,7 @@ public class PaymentServiceImpl implements PaymentService{
            notify.put("email" , true);
            paymentLinkRequest.put("reminder_enable" , true);
 
-           paymentLinkRequest.put("callback_url" , "https://localhost:3000/wallet");
+           paymentLinkRequest.put("callback_url" , "https://localhost:8000/walletorder_id=" + orderId);
            paymentLinkRequest.put("callback_method" , "get");
 
            PaymentLink payment = razorpay.paymentLink.create(paymentLinkRequest);
@@ -115,8 +122,8 @@ public class PaymentServiceImpl implements PaymentService{
         SessionCreateParams params = SessionCreateParams.builder()
                 .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
                 .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl("http://localhost:3000/wallet?order_id=" + orderId)
-                .setCancelUrl("http://localhost:3000/payment/cancel")
+                .setSuccessUrl("http://localhost:8000/wallet?order_id=" + orderId)
+                .setCancelUrl("http://localhost:8000/payment/cancel")
                 .addLineItem(SessionCreateParams.LineItem.builder()
                         .setQuantity(1L)
                         .setPriceData(SessionCreateParams.LineItem.PriceData.builder()

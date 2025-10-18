@@ -8,6 +8,7 @@ import com.jeevan.TradingApp.response.AuthResponse;
 import com.jeevan.TradingApp.service.CustomUserDetailsService;
 import com.jeevan.TradingApp.service.EmailService;
 import com.jeevan.TradingApp.service.TwoFactorOtpService;
+import com.jeevan.TradingApp.service.WatchlistService;
 import com.jeevan.TradingApp.utils.OtpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.graphql.GraphQlProperties;
@@ -25,12 +26,19 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
+
     @Autowired
     private TwoFactorOtpService twoFactorOtpService;
+
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private WatchlistService watchlistService;
+
     @PostMapping("/signup")
     public ResponseEntity<AuthResponse> register(@RequestBody User user) throws Exception {
         User EmailExist = userRepository.findByEmail(user.getEmail());
@@ -41,7 +49,10 @@ public class AuthController {
         newuser.setFullName(user.getFullName());
         newuser.setPassword(user.getPassword());
         newuser.setEmail(user.getEmail());
+
         User saveduser = userRepository.save(newuser);
+
+        watchlistService.createWatchlist(saveduser);
         Authentication auth = new UsernamePasswordAuthenticationToken(
                 user.getEmail(),
                 user.getPassword()

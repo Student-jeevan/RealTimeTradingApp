@@ -1,8 +1,11 @@
 package com.jeevan.TradingApp.controller;
 
+import com.jeevan.TradingApp.domain.WalletTransactionType;
 import com.jeevan.TradingApp.modal.User;
 import com.jeevan.TradingApp.modal.Wallet;
+import com.jeevan.TradingApp.modal.WalletTransaction;
 import com.jeevan.TradingApp.modal.Withdrawal;
+import com.jeevan.TradingApp.service.TransactionService;
 import com.jeevan.TradingApp.service.UserService;
 import com.jeevan.TradingApp.service.WalletService;
 import com.jeevan.TradingApp.service.WithdrawalService;
@@ -24,14 +27,20 @@ public class WithdrawalController {
     @Autowired
     private UserService userService;
 
-//    @Autowired
-//    private WalletTransactionService walletTransactionService
+    @Autowired
+    private TransactionService transactionService;
+
     @PostMapping("/api/withdrawal/{amount}")
     public ResponseEntity<?> withdrawalRequest(@PathVariable Long amount , @RequestHeader("Authorization") String jwt) throws Exception {
         User user = userService.findUserProfileByJwt(jwt);
         Wallet userWallet = walletService.getUserWallet(user);
         Withdrawal withdrawal  = withdrawalService.requestWithdrawal(amount , user);
         walletService.addBalance(userWallet , -withdrawal.getId());
+
+        WalletTransaction walletTransaction = transactionService.createTransaction(
+                userWallet,
+                WalletTransactionType.WITHDRAWAL , null , "bank account withdrawal" , withdrawal.getAmount()
+        );
         return new ResponseEntity<>(withdrawal, HttpStatus.OK);
     }
 
@@ -44,7 +53,6 @@ public class WithdrawalController {
         if(!accept){
             walletService.addBalance(userWallet , withdrawal.getAmount());
         }
-
         return new ResponseEntity<>(withdrawal , HttpStatus.OK);
     }
 
@@ -62,5 +70,4 @@ public class WithdrawalController {
         List<Withdrawal> withdrawal = withdrawalService.getAllWithdrawalRequest();
         return new ResponseEntity<>(withdrawal , HttpStatus.OK);
     }
-
 }

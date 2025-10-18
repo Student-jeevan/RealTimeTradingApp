@@ -11,13 +11,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/watch/watchlist")
+@RequestMapping("/api/watchlist")
 public class WatchlistController {
     @Autowired
     private WatchlistService watchlistService;
 
     @Autowired
-    private UserService userService
+    private UserService userService;
 
     @Autowired
     private CoinService coinservice;

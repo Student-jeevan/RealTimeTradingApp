@@ -22,6 +22,7 @@ public class WalletServiceImpl implements WalletService{
         if(wallet == null){
             wallet = new Wallet();
             wallet.setUser(user);
+            walletRepository.save(wallet);
         }
         return wallet;
     }
@@ -47,16 +48,21 @@ public class WalletServiceImpl implements WalletService{
     public Wallet walletToWalletTransfer(User sender, Wallet receiverWallet, Long amount) throws Exception {
         Wallet senderWallet = getUserWallet(sender);
 
-        if(senderWallet.getBalance().compareTo(BigDecimal.valueOf(amount))<0){
+        // Check sufficient balance
+        if (senderWallet.getBalance().compareTo(BigDecimal.valueOf(amount)) < 0) {
             throw new Exception("Insufficient balance ...");
         }
+
+        // Deduct from sender
         BigDecimal senderBalance = senderWallet.getBalance().subtract(BigDecimal.valueOf(amount));
         senderWallet.setBalance(senderBalance);
         walletRepository.save(senderWallet);
 
-        BigDecimal receiverBalance = receiverWallet.getBalance().subtract(BigDecimal.valueOf(amount));
+        // Add to receiver ✅
+        BigDecimal receiverBalance = receiverWallet.getBalance().add(BigDecimal.valueOf(amount));
         receiverWallet.setBalance(receiverBalance);
         walletRepository.save(receiverWallet);
+
         return senderWallet;
     }
 
