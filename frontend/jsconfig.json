@@ -1,8 +1,12 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
+    // ... other options
+
+    "baseUrl": "./", // Start searching from the project root
     "paths": {
-      "@/*": ["./src/*"]
+      // Map the '@/*' alias to the './src/*' directory
+      "@/*": ["./src/*"] 
     }
   }
+  // ...
 }
