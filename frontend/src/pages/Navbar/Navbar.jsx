@@ -9,8 +9,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { DragHandleHorizontalIcon} from "@radix-ui/react-icons"
-import { Avatar, AvatarImage } from '@radix-ui/react-avatar';
+import { DragHandleHorizontalIcon, MagnifyingGlassIcon} from "@radix-ui/react-icons"
+import { Avatar, AvatarFallback, AvatarImage } from '@radix-ui/react-avatar';
 const Navbar = ()=>{
     return (
         <div className='px-2 py-3 border-b z-50 bg-background bg-opacity-0 sticky top-0 left-0 right-0 flex justify-between items-center'>
@@ -40,8 +40,24 @@ const Navbar = ()=>{
                         <Sidebar/>
                     </SheetContent>
                 </Sheet>
-            </div>
+                <p className='text-sm lg:text-base cursor-pointer'>
+                    Crytpo Trading
+                </p>
 
+                <div className="p-0 ml-9">
+                    <Button variant="outline" className="flex items-center gap-3">
+                        <MagnifyingGlassIcon/>
+                        <span>Search</span>
+                    </Button>
+                </div>
+            </div>
+            <div>
+                <Avatar>
+                    <AvatarFallback>
+                        J
+                    </AvatarFallback>
+                </Avatar>
+            </div>
         </div>
     )
 }
