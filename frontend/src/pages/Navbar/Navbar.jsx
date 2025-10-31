@@ -10,7 +10,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { DragHandleHorizontalIcon, MagnifyingGlassIcon} from "@radix-ui/react-icons"
-import { Avatar, AvatarFallback, AvatarImage } from '@radix-ui/react-avatar';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 const Navbar = ()=>{
     return (
         <div className='px-2 py-3 border-b z-50 bg-background bg-opacity-0 sticky top-0 left-0 right-0 flex justify-between items-center'>
@@ -27,7 +27,7 @@ const Navbar = ()=>{
                         <SheetTitle>
                             <div className="text-2xl flex justify-center items-center gap-1">
                                 <Avatar>
-                                    <AvatarImage src="/crypto_logo.png"  alt="Crypto App Logo - CryptEx Trade"  />
+                                    <AvatarImage src="https://assets.coingecko.com/coins/images/1/large/bitcoin.png"  alt="Crypto App Logo - CryptEx Trade"/>
                                 </Avatar>
                                 <div>
                                     <span className="font-bold text-orange-700">Crypto</span>
