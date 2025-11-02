@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import AssetTable from './AssetTable';
+import StockChart from './StockChart';
 const Home = () => {
     const [category , setCategory] = React.useState("all");
     const handleCategory = (value) =>{
@@ -17,6 +18,9 @@ const Home = () => {
                         <Button onClick={()=>handleCategory("topLosers")}  variant={category=="topLosers"?"default":"outline"} className='rounded-full '>Top Losers</Button>
                     </div>
                     <AssetTable/>
+                </div>
+                <div className="hidden lg:block lg:w-[50%] p-5">
+                    <StockChart/>
                 </div>
             </div>
 
