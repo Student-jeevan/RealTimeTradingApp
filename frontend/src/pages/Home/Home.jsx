@@ -5,10 +5,26 @@ import StockChart from './StockChart';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { CrossIcon, DotIcon, MessageCircleIcon } from 'lucide-react';
 import { Cross1Icon } from '@radix-ui/react-icons';
+import { Input } from '@/components/ui/input';
 const Home = () => {
     const [category , setCategory] = React.useState("all");
+    const [inputValue , setInputValue] = React.useState("");
+    const [isBotRealease , setIsBotRealease] = React.useState(false);
+    const handleBotRelease = () =>{
+        setIsBotRealease(!isBotRealease);
+    }
+
     const handleCategory = (value) =>{
         setCategory(value);
+    }
+    const handleChange = (e) =>{
+        setInputValue(e.target.value);
+    }
+    const handlekeyPress = (event) =>{
+        if (event.key === 'Enter') {
+            console.log(inputValue);
+        }
+         setInputValue(""); 
     }
     return (
         <div className='realtive'>
@@ -50,10 +66,10 @@ const Home = () => {
                 </div>
             </div>
             <section className='absolute bottom-5 right-5 z-40 flex-col justify-end items-end gap-2'>
-                <div className='rounded-md w-[20rem] md:w-[25rem] lg:w-[25rem] h-[70vh] bg-slate-900'>
+               {isBotRealease &&  <div className='rounded-md w-[20rem] md:w-[25rem] lg:w-[25rem] h-[70vh] bg-slate-900'>
                     <div className='flex justify-between items-center border-b px-6 h-[12%]'>
                         <p>Chat Bot</p>
-                        <Button variant='ghost' size='icon'>
+                        <Button onClick={handleBotRelease} variant='ghost' size='icon'>
                             <Cross1Icon/>
                         </Button>
                     </div>
@@ -66,32 +82,25 @@ const Home = () => {
                             </div>
                         </div>
                         {
-                            [1 ,1,1,1].map((item , i)=> <div key={i} className={`${i%2==0?"self-end":"self-end"} "pb-5 w-auto" `}>
-                            <div className='justify-end self-end px-5 py-2 rounded-md bg-slate-800 w-auto'>
+                            [1,1,1,1].map((item , i)=> (<div key={i} className={`${i%2==0 ?"self-start":"self-end"} "pb-5 w-auto" `}>
+                                {i%2==0 ? <div className='justify-end self-end px-5 py-2 rounded-md bg-slate-800 w-auto'>
                                 <p>prompt.. </p>
                                 
-                            </div>
-                            <div className='justify-end self-end px-5 py-2 rounded-md bg-slate-800 w-auto'>
+                            </div>: <div className='justify-end self-end px-5 py-2 rounded-md bg-slate-800 w-auto'>
                                 <p>ans : hi jeevan </p>
                                 
-                            </div>
-                        </div>)
-                        }
-                        <div className={`${true?"self-end":"self-end"} "pb-5 w-auto" `}>
-                            <div className='justify-end self-end px-5 py-2 rounded-md bg-slate-800 w-auto'>
-                                <p>prompt.. </p>
-                                
-                            </div>
-                            <div className='justify-end self-end px-5 py-2 rounded-md bg-slate-800 w-auto'>
-                                <p>ans : hi jeevan </p>
-                                
-                            </div>
-                        </div>
+                            </div>}
+                
+                        </div>))}
+
 
                     </div>
-                </div>
+                    <div className='h-[12%] border-t'>
+                        <Input  className='w-full h-full order-none outline-none' placeholder='write prompt' onChange={handleChange} value={inputValue} onKeyPress={handlekeyPress} />
+                    </div>
+                </div> }
                 <div className='relative w-[10rem] cursor-pointer group'>
-                    <Button className='w-full h-[3rem] gap-2 items-center'>
+                    <Button onClick={handleBotRelease} className='w-full h-[3rem] gap-2 items-center'>
                         <MessageCircleIcon size={30} className='!w-9 !h-9 fill-[#1e293b] -rotate-90 stroke-none group-hover:fill-[#1a1a1a]' />
                         <span className='text-2xl'>Chat Bot</span>
                     </Button>
