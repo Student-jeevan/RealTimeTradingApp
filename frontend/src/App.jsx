@@ -1,4 +1,3 @@
-import { Activity, useState } from 'react'
 import './App.css'
 import Navbar from './pages/Navbar/Navbar'
 import Home from './pages/Home/Home'
@@ -12,6 +11,7 @@ import SearchCoin from './pages/Search/SearchCoin'
 import Notfound from './pages/Notfound/Notfound'
 import Portfolio from './pages/Portfolio/Portfolio'
 import Wallet from './pages/Wallet/Wallet'
+import Activity from './pages/Activity/Activity'
 function App() {
   return (
    <>
