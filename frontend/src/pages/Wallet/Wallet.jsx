@@ -1,9 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogTrigger,DialogContent,DialogHeader,DialogTitle } from '@/components/ui/dialog'
-import { WalletIcon , CopyIcon ,RefreshCw, DollarSign, UploadIcon, ShuffleIcon} from 'lucide-react'
+import { WalletIcon , CopyIcon ,RefreshCw, DollarSign, UploadIcon, ShuffleIcon, LucideShuffle} from 'lucide-react'
 import TopupForm from './TopupForm'
-import Withdrawal from '../Withdrawal/Withdrawal'
+import Withdrawal from './WithdrawalForm'
 import TransferForm from './TransferForm'
+import { AvatarIcon, UpdateIcon } from '@radix-ui/react-icons'
+import { Avatar } from '@radix-ui/react-avatar'
+import { AvatarFallback } from '@/components/ui/avatar'
 function Wallet() {
     return (
         <div className='flex flex-col items-center'>
@@ -83,6 +86,32 @@ function Wallet() {
                         </div>
                     </CardContent>
                  </Card>
+                 <div className='py-5 pt-10'>
+                    <div className='flex gap-2 items-center pb-5'>
+                        <h1 className='text-2xl font-semibold'>History</h1>
+                        <UpdateIcon className='h-7 w-7 p-0 cursor-pointer hover:text-gray-400' />
+                    </div>
+                    <div className='space-y-5'>
+                            {[1,1,1,1,1,1,1].map((item , i)=><div key={i}>
+                                <Card className=' px-5 flex justify-between items-center p-2'>
+                                    <div className='flex items-center gap-5 '>
+                                        <Avatar>
+                                            <AvatarFallback>
+                                                <LucideShuffle/>
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div className='space-y-1'>
+                                            <h1>Buy Asset</h1>
+                                            <p className='text-sm text-gray-500'>2025-08-18</p>
+                                        </div>
+                                    </div>
+                                    <div className=''>
+                                        <p className='text-green-500'>998USD</p>
+                                    </div>
+                                </Card>
+                            </div>)}
+                    </div>
+                 </div>
             </div>
         </div>
     )
