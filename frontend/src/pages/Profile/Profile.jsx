@@ -1,9 +1,20 @@
 import { Badge } from '@/components/ui/badge'
 import { Card ,CardTitle , CardHeader , CardContent } from '@/components/ui/card'
+import { Dialog ,DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,} from '@/components/ui/dialog'
 import { VerifiedIcon } from 'lucide-react'
 import React from 'react'
-
+import { Button } from '@/components/ui/button'
+import AccountVerificationForm from './AccountVerificationForm'
 function Profile() {
+    const handleEnableTwoStepVerification = () => {
+           
+        console.log('Two-step verification enabled');
+      }
     return (
         <div className='flex flex-col items-center mb-5'>
             <div className='pt-10 w-full lg:w-[60%]'>
@@ -51,7 +62,7 @@ function Profile() {
                             </div>
                         </div>
                     </CardContent>
-                </Card>
+                </Card> 
                 <div className='mt-6'>
                     <Card className='w-full'>
                         <CardHeader className='pb-7'>
@@ -67,6 +78,21 @@ function Profile() {
                                    
                             </div>
                         </CardHeader>
+                        <CardContent>
+                            <div>
+                                <Dialog>
+                                    <DialogTrigger>
+                                        <Button>Enabled Two Step Verification</Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                        <DialogTitle>Verify your account?</DialogTitle>
+                                        </DialogHeader>
+                                        <AccountVerificationForm handleSumbit={handleEnableTwoStepVerification}/>
+                                    </DialogContent>
+                                    </Dialog>
+                            </div>
+                        </CardContent>
                     </Card>
                 </div>
             </div>
