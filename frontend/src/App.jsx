@@ -12,9 +12,12 @@ import Notfound from './pages/Notfound/Notfound'
 import Portfolio from './pages/Portfolio/Portfolio'
 import Wallet from './pages/Wallet/Wallet'
 import Activity from './pages/Activity/Activity'
+import Auth from './pages/Auth/Auth'
 function App() {
   return (
    <>
+      <Auth/>
+      {true && <div>
       <Navbar/>
       <Routes>
         <Route path='/' element={<Home/>}/>
@@ -29,6 +32,7 @@ function App() {
         <Route path='/search' element={<SearchCoin/>}/>
         <Route path='*' element={<Notfound/>}/>
       </Routes>
+      </div>}
    </>  
   )
 }
