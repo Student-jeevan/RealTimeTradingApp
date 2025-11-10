@@ -17,7 +17,7 @@ function App() {
   return (
    <>
       <Auth/>
-      {true && <div>
+      {false && <div>
       <Navbar/>
       <Routes>
         <Route path='/' element={<Home/>}/>

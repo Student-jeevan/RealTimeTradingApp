@@ -13,7 +13,10 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { DialogClose } from '@/components/ui/dialog'
+import { useDispatch } from 'react-redux'
+import { login } from '@/State/Auth/Action'
 function SiginForm() {
+    const dispatch = useDispatch();
     const form = useForm({
         resolver:"",
         defaultValues:{
@@ -22,6 +25,7 @@ function SiginForm() {
         }
     })
     const onSubmit=(data)=>{
+        dispatch(login(data));
         console.log(data);
     }
     return (
@@ -31,7 +35,7 @@ function SiginForm() {
                 <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
                     <FormField
                        control={form.control}
-                        name="eamil"
+                        name="email"
                         render={({ field }) => (
                             <FormItem>
                             <FormControl>
