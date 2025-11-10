@@ -15,8 +15,10 @@ import { Button } from '@/components/ui/button'
 import { DialogClose } from '@/components/ui/dialog'
 import { useDispatch } from 'react-redux'
 import { login } from '@/State/Auth/Action'
+import { useNavigate } from 'react-router-dom'
 function SiginForm() {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const form = useForm({
         resolver:"",
         defaultValues:{
@@ -25,7 +27,7 @@ function SiginForm() {
         }
     })
     const onSubmit=(data)=>{
-        dispatch(login(data));
+        dispatch(login(data, navigate));
         console.log(data);
     }
     return (

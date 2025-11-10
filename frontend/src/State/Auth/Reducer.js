@@ -1,4 +1,4 @@
-import { REGISTER_FAILURE, REGISTER_REQUEST, REGISTER_SUCCESS, LOGIN_SUCCESS,LOGIN_FAILURE,LOGIN_REQUEST,GET_USER_REQUEST,GET_USER_SUCCESS,GET_USER_FAILURE } from "./ActionTypes";
+import { REGISTER_FAILURE, REGISTER_REQUEST, REGISTER_SUCCESS, LOGIN_SUCCESS,LOGIN_FAILURE,LOGIN_REQUEST,GET_USER_REQUEST,GET_USER_SUCCESS,GET_USER_FAILURE,LOGOUT } from "./ActionTypes";
 const intialState = {
     user:null,
     loading:false,
@@ -20,6 +20,8 @@ const authRedcuer = (state=intialState,action)=>{
         case LOGIN_FAILURE:
         case GET_USER_FAILURE:
             return {...state, loading:false, error:action.payload};
+        case LOGOUT:
+            return {...intialState}
         default:
             return state;   
     }

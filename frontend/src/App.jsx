@@ -13,11 +13,22 @@ import Portfolio from './pages/Portfolio/Portfolio'
 import Wallet from './pages/Wallet/Wallet'
 import Activity from './pages/Activity/Activity'
 import Auth from './pages/Auth/Auth'
+import {useDispatch ,useSelector} from 'react-redux'
+import { useEffect } from "react";
+import {getUser} from './State/Auth/Action'
 function App() {
+  const auth = useSelector(state=>state.auth);
+  const dispatch = useDispatch();
+  console.log("auth -- ",auth);
+  useEffect(()=>{
+    const jwt = auth.jwt || localStorage.getItem("jwt");
+    if(jwt) {
+      dispatch(getUser(jwt));
+    }
+  },[auth.jwt])
   return (
    <>
-      <Auth/>
-      {false && <div>
+      {auth.user ? <div>
       <Navbar/>
       <Routes>
         <Route path='/' element={<Home/>}/>
@@ -32,7 +43,7 @@ function App() {
         <Route path='/search' element={<SearchCoin/>}/>
         <Route path='*' element={<Notfound/>}/>
       </Routes>
-      </div>}
+      </div> : <Auth/>}
    </>  
   )
 }
