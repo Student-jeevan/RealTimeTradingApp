@@ -26,9 +26,7 @@ public class AppConfig {
     private CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
         cfg.setAllowedOrigins(Arrays.asList(
-                 // your frontend port
-                "http://localhost:5174",
-                "http://localhost:"
+                "http://localhost:5173" // Vite dev server
         ));
         cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         cfg.setAllowedHeaders(Collections.singletonList("*"));

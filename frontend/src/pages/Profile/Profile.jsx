@@ -10,7 +10,10 @@ import { VerifiedIcon } from 'lucide-react'
 import React from 'react'
 import { Button } from '@/components/ui/button'
 import AccountVerificationForm from './AccountVerificationForm'
+import { useSelector } from 'react-redux'
+import { store } from '@/State/Store'
 function Profile() {
+    const {auth} = useSelector(store=>store);
     const handleEnableTwoStepVerification = () => {
            
         console.log('Two-step verification enabled');
@@ -27,11 +30,11 @@ function Profile() {
                             <div className='space-y-7'>
                                 <div className='flex'>
                                     <p className='w-[9rem]'>Email:</p>
-                                    <p className='text-gray-500'>jeevan@gmail.com</p>
+                                    <p className='text-gray-500'>{auth.user?.email}</p>
                                 </div>
                                 <div className='flex'>
                                     <p className='w-[9rem]'>FullName:</p>
-                                    <p className='text-gray-500'>jeevnsinghThitre</p>
+                                    <p className='text-gray-500'>{auth.user?.fullName}</p>
                                 </div>
                                 <div className='flex'>
                                     <p className='w-[9rem]'>Date of Birth:</p>
@@ -39,7 +42,7 @@ function Profile() {
                                 </div>
                                 <div className='flex'>
                                     <p className='w-[9rem]'>Nationality:</p>
-                                    <p className='text-gray-500'>Indian</p>
+                                       <p className='text-gray-500'>Indian</p>
                                 </div>
                             </div>
                              <div className='space-y-7'>
