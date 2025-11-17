@@ -1,4 +1,4 @@
-import React, { use } from 'react';
+import React, { use, useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -9,8 +9,10 @@ import {
 } from '@/components/ui/table';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { useDispatch } from 'react-redux';
 
-const AssetTable = () => {
+const AssetTable = ({coin, category}) => {
+  const dispatch=useDispatch()
   const navigate  = useNavigate();
   return (
     <Table className="w-full">
@@ -26,24 +28,24 @@ const AssetTable = () => {
       </TableHeader>
 
       <TableBody>
-        {[1, 1, 1, 1, 1, 1 , 1,1,1,1].map((item, index) => (
-          <TableRow key={index} className="hover:bg-muted/50">
-            <TableCell onClick={() => navigate(`/market/bitcoin`)} className="font-medium flex items-center gap-3">
+        {coin.map((item, index) => (
+          <TableRow key={item.id} className="hover:bg-muted/50">
+            <TableCell onClick={() => navigate(`/market/${item.id}`)} className="font-medium flex items-center gap-3">
               <Avatar className="h-8 w-8">
                 <AvatarImage
-                  src="https://assets.coingecko.com/coins/images/1/large/bitcoin.png"
+                  src={item.image}
                   alt="Bitcoin"
                 />
                 <AvatarFallback>B</AvatarFallback>
               </Avatar>
-              <span>Bitcoin</span>
+              <span>{item.name}</span>
             </TableCell>
 
-            <TableCell className="text-center">BTC</TableCell>
-            <TableCell className="text-center">9,124,463,121</TableCell>
-            <TableCell className="text-right">$1,364,881,428,323</TableCell>
-            <TableCell className="text-right text-red-500">-0.20%</TableCell>
-            <TableCell className="text-right font-semibold">$69,249.00</TableCell>
+            <TableCell className="text-center">{item.symbol}</TableCell>
+            <TableCell className="text-center">{item.total_volume}</TableCell>
+            <TableCell className="text-right">{item.market_cap}</TableCell>
+            <TableCell className="text-right text-red-500">{item.price_change_percentage_24h}</TableCell>
+            <TableCell className="text-right font-semibold">{item.current_price}</TableCell>
           </TableRow>
         ))}
       </TableBody>
