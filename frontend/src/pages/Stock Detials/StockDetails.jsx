@@ -14,12 +14,10 @@ import {
 } from "@/components/ui/dialog"
 import TradingForm from '../Stock Detials/TradingForm'
 import StockChart from '../Home/StockChart'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { fetchCoinDetails } from '@/State/Coin/Action'
-import { store } from '@/State/Store'
-import { useSelector } from 'react-redux'
 function StockDetails() {
-  const {coin}=useSelector(store=>store)
+  const coin = useSelector(state => state.coin)
   const [bookmarked, setBookmarked] = React.useState(false);
   const dispatch=useDispatch()
   const {id}=useParams()
@@ -36,7 +34,7 @@ function StockDetails() {
           </Avatar>
           <div>
             <div className='flex items-center gap-2'>
-              <p>BTC</p>
+              <p>{coin.coinDetails?.symbol.toUpperCase()}</p>
               <DotIcon className='text-gray-400' />
               <p className='text-gray-400'>{coin.coinDetails?.name}</p>
             </div>
@@ -70,7 +68,7 @@ function StockDetails() {
 
       </div>
       <div className='mt-14' >
-        <StockChart/>
+        <StockChart coinId={id}/>
       </div>
     </div>
   )

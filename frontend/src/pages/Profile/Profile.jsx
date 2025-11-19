@@ -11,9 +11,8 @@ import React from 'react'
 import { Button } from '@/components/ui/button'
 import AccountVerificationForm from './AccountVerificationForm'
 import { useSelector } from 'react-redux'
-import { store } from '@/State/Store'
 function Profile() {
-    const {auth} = useSelector(store=>store);
+    const auth = useSelector(state => state.auth);
     const handleEnableTwoStepVerification = () => {
            
         console.log('Two-step verification enabled');

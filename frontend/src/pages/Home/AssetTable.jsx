@@ -10,13 +10,15 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useDispatch } from 'react-redux';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const AssetTable = ({coin, category}) => {
   const dispatch=useDispatch()
   const navigate  = useNavigate();
   return (
     <Table className="w-full">
-      <TableHeader>
+      <ScrollArea className={`${category=="all"?"h-[74vh]":"h-[82vh]"}`}>
+        <TableHeader>
         <TableRow>
           <TableHead className="w-[180px]">Coin</TableHead>
           <TableHead className="w-[100px] text-center">Symbol</TableHead>
@@ -49,6 +51,8 @@ const AssetTable = ({coin, category}) => {
           </TableRow>
         ))}
       </TableBody>
+      </ScrollArea>
+      
     </Table>
   );
 };
