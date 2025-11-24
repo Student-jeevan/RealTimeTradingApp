@@ -4,8 +4,12 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { DialogClose } from '@/components/ui/dialog'
+import { useDispatch,useSelector } from 'react-redux'
 function Withdrawal() {
+
     const [amount, setAmount] = React.useState('')
+    const dispatch=useDispatch();
+    const {wallet} = useSelector(store=>store)
     const handleChange = (e) => {
         setAmount(e.target.value)
     }

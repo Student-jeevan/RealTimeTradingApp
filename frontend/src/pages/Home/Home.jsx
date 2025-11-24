@@ -8,6 +8,15 @@ import { Cross1Icon } from '@radix-ui/react-icons';
 import { Input } from '@/components/ui/input';
 import { getCoinList , getTop50CoinList} from '@/State/Coin/Action';
 import { useDispatch, useSelector } from 'react-redux';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 const Home = () => {
     const [category , setCategory] = React.useState("all");
     const [inputValue , setInputValue] = React.useState("");
@@ -48,9 +57,27 @@ const Home = () => {
                         <Button onClick={()=>handleCategory("topLosers")}  variant={category=="topLosers"?"default":"outline"} className='rounded-full '>Top Losers</Button>
                     </div>
                     <AssetTable coin={category=="all"? coin.coinList: coin.top50} category={category} />
+                    <div>
+                        <Pagination>
+                        <PaginationContent>
+                            <PaginationItem>
+                            <PaginationPrevious href="#" />
+                            </PaginationItem>
+                            <PaginationItem>
+                            <PaginationLink href="#">1</PaginationLink>
+                            </PaginationItem>
+                            <PaginationItem>
+                            <PaginationEllipsis />
+                            </PaginationItem>
+                            <PaginationItem>
+                            <PaginationNext href="#" />
+                            </PaginationItem>
+                        </PaginationContent>
+                        </Pagination>
+                    </div>
                 </div>
                 <div className="hidden lg:block lg:w-[50%] p-5">
-                    <StockChart coinId="ethereum"/>
+                    <StockChart coinId={"bitcoin"}/>
                     <div className='flex gap-5 items-center'>
 
                         <div>

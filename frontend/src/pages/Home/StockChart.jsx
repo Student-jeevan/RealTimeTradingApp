@@ -1,6 +1,5 @@
 import React from 'react';
 import Chart from "react-apexcharts";
-import ReactApexChart from 'react-apexcharts';
 import { Button } from '@/components/ui/button';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
@@ -24,17 +23,23 @@ const timeSeries = [{
     label: "1 Month ",
     value: 30,    
     },
+    {
+    keyword: "DIGITAL_CURRENCY_MONTHLY",
+    key: "Yearly Time Series ",
+    label: "1 year",
+    value: 365,    
+    },
 
 ];
-function StockChart({ coinId = "ethereum" }) {
+function StockChart({ coinId }) {
   const dispatch = useDispatch()
   const coin = useSelector(state => state.coin)
     const [activeLable , setActiveLable] = React.useState("1 Day");
   
   const series = [
     {
-     data:coin.marketChart?.data || [],
-      
+      name: "Price",
+      data: coin.marketChart?.data || [],
     },
   ];
 
@@ -96,7 +101,7 @@ function StockChart({ coinId = "ethereum" }) {
     <div>
         <div className="space-x-3">
             {timeSeries.map((item)=>
-                <Button variant={activeLable==item.label?"":"outline"} onClick={()=>handleActiveLable(item.label)} key={item.label}>{item.label}</Button>
+                <Button variant={activeLable === item.label ? "default" : "outline"} onClick={()=>handleActiveLable(item.label)} key={item.label}>{item.label}</Button>
             )}
         </div>
         <div id="chart-timeline">

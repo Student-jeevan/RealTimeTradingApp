@@ -7,7 +7,40 @@ import TransferForm from './TransferForm'
 import { AvatarIcon, UpdateIcon } from '@radix-ui/react-icons'
 import { Avatar } from '@radix-ui/react-avatar'
 import { AvatarFallback } from '@/components/ui/avatar'
+import { useDispatch, useSelector} from 'react-redux'
+import { depositMoney, getUserWallet } from '@/State/Wallet/Action'
+import { useEffect } from "react";
+import { useNavigate, useLocation } from 'react-router-dom'
+function useQuery(){
+    return new URLSearchParams(useLocation().search);
+
+}
+
 function Wallet() {
+
+    const dispatch=useDispatch();
+    const {wallet} = useSelector(store=>store)
+    const query = useQuery();
+    const orderId = query.get("order_id");
+    const paymentId = query.get("payment_id");
+    const razorpayPaymentId = query.get('razorpay_payment_id');
+    const navigate = useNavigate();
+    useEffect(()=>{
+        if(orderId){
+            dispatch(depositMoney({jwt:localStorage.getItem("jwt"),
+                orderId,
+                paymentId: razorpayPaymentId || paymentId,
+                navigate
+            }))
+        }
+
+    },[orderId , paymentId , razorpayPaymentId]);
+    useEffect(()=>{
+        handleFetchUserWallet();
+    },[])
+    const handleFetchUserWallet=()=>{
+        dispatch(getUserWallet(localStorage.getItem("jwt")));
+    }
     return (
         <div className='flex flex-col items-center'>
             <div className='pt-10 w-full lg:w-[60%]'>
@@ -19,20 +52,20 @@ function Wallet() {
                                 <div>
                                     <CardTitle className='text-2xl'>My Wallet</CardTitle>
                                     <div className='flex items-center gap-2'>
-                                        <p className='text-gray-200 text-sm'>#A4ED$D</p>
+                                        <p className='text-gray-200 text-sm'>{wallet.userWallet?.id}</p>
                                         <CopyIcon size={15}  className='cursor-pointer hover:text-slate-300'/>
                                     </div>
                                 </div>
                             </div>
                             <div>
-                                <RefreshCw className='w-6 h-6 cursor-pointer hover:text-gray-400' />
+                                <RefreshCw onClick={handleFetchUserWallet} className='w-6 h-6 cursor-pointer hover:text-gray-400' />
                             </div>
                         </div>
                     </CardHeader>
                     <CardContent>
                         <div className='flex items-center'>
                             <DollarSign/>
-                            <span className='text-2xl font-semibold'>20000</span>
+                            <span className='text-2xl font-semibold'>{wallet.userWallet.balance}</span>
                         </div>
                         <div className='flex gap-7 mt-5'>
                             <Dialog>
