@@ -8,7 +8,7 @@ import { AvatarIcon, UpdateIcon } from '@radix-ui/react-icons'
 import { Avatar } from '@radix-ui/react-avatar'
 import { AvatarFallback } from '@/components/ui/avatar'
 import { useDispatch, useSelector} from 'react-redux'
-import { depositMoney, getUserWallet } from '@/State/Wallet/Action'
+import { depositMoney, getUserWallet, getWalletTransactions } from '@/State/Wallet/Action'
 import { useEffect } from "react";
 import { useNavigate, useLocation } from 'react-router-dom'
 function useQuery(){
@@ -37,9 +37,13 @@ function Wallet() {
     },[orderId , paymentId , razorpayPaymentId]);
     useEffect(()=>{
         handleFetchUserWallet();
+        handleFetchWalletTransaction();
     },[])
     const handleFetchUserWallet=()=>{
         dispatch(getUserWallet(localStorage.getItem("jwt")));
+    }
+    const handleFetchWalletTransaction = ()=>{
+        dispatch(getWalletTransactions({jwt:localStorage.getItem("jwt")}));
     }
     return (
         <div className='flex flex-col items-center'>
@@ -122,24 +126,24 @@ function Wallet() {
                  <div className='py-5 pt-10'>
                     <div className='flex gap-2 items-center pb-5'>
                         <h1 className='text-2xl font-semibold'>History</h1>
-                        <UpdateIcon className='h-7 w-7 p-0 cursor-pointer hover:text-gray-400' />
+                        <UpdateIcon onClick={handleFetchWalletTransaction} className='h-7 w-7 p-0 cursor-pointer hover:text-gray-400' />
                     </div>
                     <div className='space-y-5'>
-                            {[1,1,1,1,1,1,1].map((item , i)=><div key={i}>
+                            {(wallet.transactions || []).map((item , i)=><div key={i}>
                                 <Card className=' px-5 flex justify-between items-center p-2'>
                                     <div className='flex items-center gap-5 '>
-                                        <Avatar>
+                                        <Avatar onClick={handleFetchUserWallet}>
                                             <AvatarFallback>
                                                 <LucideShuffle/>
                                             </AvatarFallback>
                                         </Avatar>
                                         <div className='space-y-1'>
-                                            <h1>Buy Asset</h1>
-                                            <p className='text-sm text-gray-500'>2025-08-18</p>
+                                            <h1>{item.type || item.purpose}</h1>
+                                            <p className='text-sm text-gray-500'>{item.date}</p>
                                         </div>
                                     </div>
                                     <div className=''>
-                                        <p className='text-green-500'>998USD</p>
+                                        <p className='text-green-500'>{item.amount}USD</p>
                                     </div>
                                 </Card>
                             </div>)}

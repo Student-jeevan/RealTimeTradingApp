@@ -13,7 +13,10 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { DialogClose } from '@/components/ui/dialog'
+import { useDispatch } from 'react-redux'
+import { addPaymentDetails } from '@/State/Withdrawal/Action'
 function PaymentDetailsForm() {
+    const useDispatch = useDispatch()
     const form = useForm({
         resolver:"",
         defaultValues:{
@@ -24,6 +27,10 @@ function PaymentDetailsForm() {
         }
     })
     const onSubmit=(data)=>{
+        console.log(data);
+        dispatchEvent(addPaymentDetails({
+            paymentDetails: data, jwt: localStorage.getItem("jwt");
+        }));
         console.log(data);
     }
     return (
