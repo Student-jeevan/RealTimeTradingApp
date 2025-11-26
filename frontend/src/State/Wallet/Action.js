@@ -1,5 +1,5 @@
-import api from "@/config/api";
 import * as types from "./ActionType";
+import api from "@/config/api";
 export const getUserWallet = (jwt)=> async (dispatch)=>{
     dispatch({type: types.GET_USER_WALLET_REQUEST});
     try{

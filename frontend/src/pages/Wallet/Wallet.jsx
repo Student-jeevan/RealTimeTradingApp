@@ -19,7 +19,10 @@ function useQuery(){
 function Wallet() {
 
     const dispatch=useDispatch();
-    const {wallet} = useSelector(store=>store)
+    const wallet = useSelector(store=>store.wallet) || {
+        userWallet: {},
+        transactions: []
+    };
     const query = useQuery();
     const orderId = query.get("order_id");
     const paymentId = query.get("payment_id");
@@ -69,7 +72,7 @@ function Wallet() {
                     <CardContent>
                         <div className='flex items-center'>
                             <DollarSign/>
-                            <span className='text-2xl font-semibold'>{wallet.userWallet.balance}</span>
+                            <span className='text-2xl font-semibold'>{wallet?.userWallet?.balance ?? 0}</span>
                         </div>
                         <div className='flex gap-7 mt-5'>
                             <Dialog>
@@ -129,7 +132,7 @@ function Wallet() {
                         <UpdateIcon onClick={handleFetchWalletTransaction} className='h-7 w-7 p-0 cursor-pointer hover:text-gray-400' />
                     </div>
                     <div className='space-y-5'>
-                            {(wallet.transactions || []).map((item , i)=><div key={i}>
+                            {(wallet?.transactions ?? []).map((item , i)=><div key={i}>
                                 <Card className=' px-5 flex justify-between items-center p-2'>
                                     <div className='flex items-center gap-5 '>
                                         <Avatar onClick={handleFetchUserWallet}>

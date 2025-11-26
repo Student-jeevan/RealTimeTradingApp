@@ -1,9 +1,11 @@
 package com.jeevan.TradingApp.controller;
 
-import com.jeevan.TradingApp.domain.OrderType;
-import com.jeevan.TradingApp.domain.WalletTransactionType;
 import com.jeevan.TradingApp.modal.*;
-import com.jeevan.TradingApp.service.*;
+import com.jeevan.TradingApp.response.PaymentResponse;
+import com.jeevan.TradingApp.service.OrderService;
+import com.jeevan.TradingApp.service.PaymentService;
+import com.jeevan.TradingApp.service.UserService;
+import com.jeevan.TradingApp.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,9 +26,6 @@ public class WalletController {
 
     @Autowired
     private PaymentService paymentService;
-
-    @Autowired
-    private TransactionService transactionService;
     
     @GetMapping("/api/wallet")
     public ResponseEntity<Wallet> getUserWallet(@RequestHeader("Authorization") String jwt) throws Exception {
@@ -48,21 +47,6 @@ public class WalletController {
         Wallet receiverWallet = walletService.findWalletById(walletId);
         Wallet wallet = walletService.walletToWalletTransfer(senderUser, receiverWallet , req.getAmount());
 
-        transactionService.createTransaction(
-                wallet,
-                WalletTransactionType.WALLET_TRANSFER,
-                null,
-                "Transfer to wallet "+walletId,
-                req.getAmount()
-        );
-        transactionService.createTransaction(
-                receiverWallet,
-                WalletTransactionType.ADD_MONEY,
-                null,
-                "Transfer from wallet "+wallet.getId(),
-                req.getAmount()
-        );
-
         return new ResponseEntity<>(wallet , HttpStatus.ACCEPTED);
     }
 
@@ -75,16 +59,6 @@ public class WalletController {
         Order order = orderService.getOrderById(orderId);
 
         Wallet wallet = walletService.payOrderPayment(order , user);
-        WalletTransactionType type = order.getOrderType().equals(OrderType.BUY)
-                ? WalletTransactionType.BUY_ASSET
-                : WalletTransactionType.SELL_ASSET;
-        transactionService.createTransaction(
-                wallet,
-                type,
-                null,
-                "Order #" + orderId,
-                order.getPrice().longValue()
-        );
         return new ResponseEntity<>(wallet , HttpStatus.ACCEPTED);
     }
 
@@ -107,13 +81,6 @@ public class WalletController {
         }
         if(status){
             wallet = walletService.addBalance(wallet , order.getAmount());
-            transactionService.createTransaction(
-                    wallet,
-                    WalletTransactionType.ADD_MONEY,
-                    paymentId,
-                    "Wallet top-up",
-                    order.getAmount()
-            );
         }
         return new ResponseEntity<>(wallet , HttpStatus.ACCEPTED);
     }
