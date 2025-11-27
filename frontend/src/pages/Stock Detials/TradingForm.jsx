@@ -6,28 +6,49 @@ import { Button } from '@/components/ui/button'
 import { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { getUserWallet } from '@/State/Wallet/Action'
+import { getAssetDetails } from '@/State/Asset/Action'
+import { payOrder } from '@/State/Order/Action'
 
 function TradingForm() {
     const [amount , setAmount] =useState(0);
     const [orderType , setOrderType] = useState("BUY");
     const [Quantity, setQuantity] = useState(0)
-    const {coin, wallet} = useSelector((store)=>store)
+    const {coin, wallet, asset} = useSelector((store)=>store)
     const dispatch = useDispatch();
-
+    const jwt = localStorage.getItem("jwt");
     const coinPrice = coin?.coinDetails?.market_data?.current_price?.usd ?? 0;
 
-    useEffect(() => {
+    useEffect(() => {  
+        if (!jwt) return;
         // Ensure wallet data is loaded when this form is used
         if (!wallet?.userWallet || wallet.userWallet.balance === undefined) {
-            const jwt = localStorage.getItem("jwt");
-            if (jwt) {
-                dispatch(getUserWallet(jwt));
-            }
+            dispatch(getUserWallet(jwt));
         }
-    }, [dispatch, wallet?.userWallet]);
+    }, [dispatch, jwt, wallet?.userWallet]);
+
+    useEffect(() => {
+        if (!jwt || !coin?.coinDetails?.id) return;
+        dispatch(getAssetDetails({coinId: coin.coinDetails.id , jwt}));
+    }, [dispatch, jwt, coin?.coinDetails?.id]);
+    const handleBuyCrytpo = ()=>{
+        if (!jwt || !coin?.coinDetails?.id) {
+            console.warn("Missing JWT or coin details; cannot place order.");
+            return;
+        }
+        const payload = {
+            jwt,
+            amount,
+            orderData:{
+                coinId: coin?.coinDetails?.id,
+                quantity: Number(Quantity) || 0,
+                orderType,
+            },
+        };
+        dispatch(payOrder(payload));
+    }
 
     const handleChange = (e) => {
-         const amount = e.target.value;
+         const amount = Number(e.target.value || 0);
          setAmount(amount)
          if (!coinPrice) {
             setQuantity(0);
@@ -64,7 +85,7 @@ function TradingForm() {
                           <p className='text-gray-400'>Bitcoin</p>
                         </div>
                         <div className='flex items-end gap-2'>
-                          <p className='text-xl font-bold'>{coinPrice}</p>
+                          <p className='text-xl font-bold'> ${ coin?.coinDetails?.market_data?.current_price?.usd ?? 0}</p>
                           <p className='text-red-600'>
                             <span>-13123224.565</span>
                             <span>(-0.233433%)</span>
@@ -78,10 +99,10 @@ function TradingForm() {
             </div>
             <div className='flex items-center justify-between'>
                 <p>{orderType=="BUY"?"Available Cash":"Available Quantity"}</p>
-                <p>{orderType=="BUY"? (wallet?.userWallet?.balance ?? 0):23.08}</p>
+                <p>{orderType=="BUY"? "$"+(wallet?.userWallet?.balance ?? 0):(asset?.assetDetails?.quantity || 0)}</p>
             </div>
             <div>
-                <Button className={`w-full py-6 ${orderType=="SELL"?"bg-red-600 text-white":""} `} >
+                <Button onClick={handleBuyCrytpo} className={`w-full py-6 ${orderType=="SELL"?"bg-red-600 text-white":""} `} >
                     {orderType}
                 </Button>
                 <Button variant="link" className='w-full mt-5 text-xl' onClick={()=>setOrderType(orderType=="BUY"?"SELL":"BUY") }> 
