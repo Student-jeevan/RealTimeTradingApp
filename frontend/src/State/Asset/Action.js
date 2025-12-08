@@ -26,7 +26,7 @@ export const getAssetById = ({assetId , jwt})=> async (dispatch)=>{
 export const getAssetDetails = ({coinId , jwt})=> async (dispatch)=>{
     dispatch({type: types.GET_ASSET_DETAILS_REQUEST});
     try{
-        const response = await api.get(`/api/assets/coin/${coinId}/user`, {
+        const response = await api.get(`/api/asset/coin/${coinId}/user`, {
             headers:{
                 Authorization: `Bearer ${jwt}`,
             },
@@ -39,7 +39,7 @@ export const getAssetDetails = ({coinId , jwt})=> async (dispatch)=>{
     }
     catch(error){
         dispatch({
-            type: types.GET_ASSET_FAILURE,
+            type: types.GET_ASSET_DETAILS_FAILURE,
             error: error.message,
         });
     }
@@ -48,7 +48,7 @@ export const getAssetDetails = ({coinId , jwt})=> async (dispatch)=>{
 export const getUserAssets = (jwt) => async (dispatch)=>{
     dispatch({type: types.GET_USER_ASSETS_REQUEST});
     try{
-        const response  = await api.get('/api/assets',{
+        const response  = await api.get('/api/asset',{
             headers:{
                 Authorization:`Bearer ${jwt}`,
             },

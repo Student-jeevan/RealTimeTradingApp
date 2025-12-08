@@ -30,6 +30,13 @@ function TradingForm() {
         if (!jwt || !coin?.coinDetails?.id) return;
         dispatch(getAssetDetails({coinId: coin.coinDetails.id , jwt}));
     }, [dispatch, jwt, coin?.coinDetails?.id]);
+
+    // Refetch asset details when switching to SELL mode to get latest quantity
+    useEffect(() => {
+        if (orderType === "SELL" && jwt && coin?.coinDetails?.id) {
+            dispatch(getAssetDetails({coinId: coin.coinDetails.id , jwt}));
+        }
+    }, [orderType, dispatch, jwt, coin?.coinDetails?.id]);
     const handleBuyCrytpo = ()=>{
         if (!jwt || !coin?.coinDetails?.id) {
             console.warn("Missing JWT or coin details; cannot place order.");
@@ -99,7 +106,16 @@ function TradingForm() {
             </div>
             <div className='flex items-center justify-between'>
                 <p>{orderType=="BUY"?"Available Cash":"Available Quantity"}</p>
-                <p>{orderType=="BUY"? "$"+(wallet?.userWallet?.balance ?? 0):(asset?.assetDetails?.quantity || 0)}</p>
+                <p>
+                    {orderType=="BUY" 
+                        ? "$"+(wallet?.userWallet?.balance ?? 0)
+                        : asset?.assetDetails?.quantity !== undefined 
+                            ? asset.assetDetails.quantity 
+                            : asset?.loading 
+                                ? "Loading..." 
+                                : 0
+                    }
+                </p>
             </div>
             <div>
                 <Button onClick={handleBuyCrytpo} className={`w-full py-6 ${orderType=="SELL"?"bg-red-600 text-white":""} `} >

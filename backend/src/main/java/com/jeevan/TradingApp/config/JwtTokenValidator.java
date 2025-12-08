@@ -21,8 +21,14 @@ import java.util.List;
 public class JwtTokenValidator extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        // Skip JWT validation for OPTIONS requests (CORS preflight)
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
         String jwt = request.getHeader(JwtConstant.jwt_header);
-        if(jwt != null){
+        if(jwt != null && jwt.startsWith("Bearer ")){
             jwt  = jwt.substring(7);
             try{
                 SecretKey key = Keys.hmacShaKeyFor(JwtConstant.secret_key.getBytes());

@@ -11,9 +11,10 @@ const assetReducer   = (state = initalState , action)=>{
     switch(action.type){
         case types.GET_ASSET_REQUEST:
         case types.GET_USER_ASSETS_REQUEST:
+        case types.GET_ASSET_DETAILS_REQUEST:
             return{
                 ...state,
-                loading: false,
+                loading: true,
                 error:null,
             };
         case types.GET_ASSET_SUCCESS:
@@ -30,8 +31,16 @@ const assetReducer   = (state = initalState , action)=>{
                 loading: false,
                 error: null,
             };
+        case types.GET_USER_ASSETS_SUCCESS:
+            return {
+                ...state,
+                userAssets: action.payload,
+                loading: false,
+                error: null,
+            };
         case types.GET_ASSET_FAILURE:
-        case types.GET_USER_ASSET_FAILURE:
+        case types.GET_USER_ASSETS_FAILURE:
+        case types.GET_ASSET_DETAILS_FAILURE:
             return {
                 ...state,
                 loading: false,

@@ -2,6 +2,7 @@ package com.jeevan.TradingApp.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -17,7 +18,10 @@ public class AppConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         http.sessionManagement(management->management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(Authorize->Authorize.requestMatchers("/api/**").authenticated().anyRequest().permitAll())
+                .authorizeHttpRequests(Authorize->Authorize
+                        .requestMatchers("/api/**").authenticated()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .anyRequest().permitAll())
                 .addFilterBefore(new JwtTokenValidator()  , BasicAuthenticationFilter.class )
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors->cors.configurationSource(corsConfigurationSource()));
@@ -28,7 +32,7 @@ public class AppConfig {
         cfg.setAllowedOrigins(Arrays.asList(
                 "http://localhost:5173" // Vite dev server
         ));
-        cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         cfg.setAllowedHeaders(Collections.singletonList("*"));
         cfg.setExposedHeaders(Arrays.asList("Authorization"));
         cfg.setAllowCredentials(true);
