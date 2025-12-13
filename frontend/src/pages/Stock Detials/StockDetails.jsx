@@ -79,12 +79,18 @@ function StockDetails() {
               <p className='text-gray-400'>{name}</p>
             </div>
             <div className='flex items-end gap-2'>
-              <p className='text-xl font-bold'>${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-              <p className={isPositive ? 'text-green-600' : 'text-red-600'}>
-                <span>{isPositive ? '+' : ''}${priceChange24h.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                <span> ({isPositive ? '+' : ''}{priceChangePercentage24h.toFixed(2)}%)</span>
-              </p>
-            </div>
+  <p className='text-xl font-bold'>
+    ${ (price || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
+  </p>
+  <p className={ (priceChange24h || 0) >= 0 ? 'text-green-600' : 'text-red-600' }>
+    <span>
+      {(priceChange24h || 0) >= 0 ? '+' : ''}${ (priceChange24h || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
+    </span>
+    <span>
+      {' ('}{(priceChange24h || 0) >= 0 ? '+' : ''}{ (priceChangePercentage24h || 0).toFixed(2) }%)
+    </span>
+  </p>
+</div>
           </div>
         </div>
 

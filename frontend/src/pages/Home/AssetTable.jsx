@@ -46,8 +46,17 @@ const AssetTable = ({coin, category}) => {
             <TableCell className="text-center">{item.symbol}</TableCell>
             <TableCell className="text-center">{item.total_volume}</TableCell>
             <TableCell className="text-right">{item.market_cap}</TableCell>
-            <TableCell className="text-right text-red-500">{item.price_change_percentage_24h}</TableCell>
-            <TableCell className="text-right font-semibold">{item.current_price}</TableCell>
+          <TableCell className="text-right font-semibold">
+  ${item.current_price?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+</TableCell>
+<TableCell 
+  className={`text-right font-semibold ${
+    item.price_change_percentage_24h >= 0 ? 'text-green-600' : 'text-red-600'
+  }`}
+>
+  {item.price_change_percentage_24h?.toFixed(2)}%
+</TableCell>
+
           </TableRow>
         ))}
       </TableBody>

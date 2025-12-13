@@ -81,24 +81,25 @@ public class PaymentServiceImpl implements PaymentService{
 
     @Override
     public PaymentResponse createRazorpayPaymentLink(User user, Long amount , Long orderId) throws RazorpayException {
-       Long Amount  = amount*100;
+       // Razorpay expects amount in paise (smallest currency unit), so multiply by 100
+       Long amountInPaise = amount * 100;
        try{
            RazorpayClient razorpay  = new RazorpayClient(apiKey , apiSecretKey);
            JSONObject paymentLinkRequest = new JSONObject();
-           paymentLinkRequest.put("amount" , amount);
+           paymentLinkRequest.put("amount" , amountInPaise);
            paymentLinkRequest.put("currency" , "INR");
 
            JSONObject customer = new JSONObject();
            customer.put("name" , user.getFullName());
-
            customer.put("email" , user.getEmail());
            paymentLinkRequest.put("customer" , customer);
 
            JSONObject notify = new JSONObject();
            notify.put("email" , true);
            paymentLinkRequest.put("reminder_enable" , true);
-
-           paymentLinkRequest.put("callback_url" , "https://localhost:8000/walletorder_id=" + orderId);
+           
+           // Fixed callback URL to point to frontend with correct query parameter format
+           paymentLinkRequest.put("callback_url" , "http://localhost:5173/wallet?order_id=" + orderId);
            paymentLinkRequest.put("callback_method" , "get");
 
            PaymentLink payment = razorpay.paymentLink.create(paymentLinkRequest);
@@ -122,8 +123,8 @@ public class PaymentServiceImpl implements PaymentService{
         SessionCreateParams params = SessionCreateParams.builder()
                 .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
                 .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl("http://localhost:8000/wallet?order_id=" + orderId)
-                .setCancelUrl("http://localhost:8000/payment/cancel")
+                .setSuccessUrl("http://localhost:5173/wallet?order_id=" + orderId)
+                .setCancelUrl("http://localhost:5173/wallet")
                 .addLineItem(SessionCreateParams.LineItem.builder()
                         .setQuantity(1L)
                         .setPriceData(SessionCreateParams.LineItem.PriceData.builder()

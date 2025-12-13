@@ -78,8 +78,9 @@ export const depositMoney = ({jwt , orderId , paymentId , navigate}) => async (d
 export const paymentHandler = ({jwt , amount , paymentMethod})=> async (dispatch)=>{
     dispatch({type: types.DEPOSIT_MONEY_REQUEST});
     try{
-        const response = await api.get(
-            `/api/payment/${paymentMethod}/amount/${amount}`,null,
+        const response = await api.post(
+            `/api/payment/${paymentMethod}/amount/${amount}`,
+            {},
             {
                 headers:{
                     Authorization: `Bearer ${jwt}`,

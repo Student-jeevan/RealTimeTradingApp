@@ -6,6 +6,7 @@ import com.jeevan.TradingApp.modal.User;
 import com.jeevan.TradingApp.repository.ForgotPasswordRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -16,6 +17,7 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService{
     private ForgotPasswordRepository forgotPasswordRepository;
 
     @Override
+    @Transactional
     public ForgotPasswordToken createToken(User user, String id, String otp, VerificationType verificationType, String sendTo) {
         ForgotPasswordToken token = new ForgotPasswordToken();
         token.setUser(user);
@@ -27,16 +29,29 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService{
     }
 
     @Override
+    @Transactional
+    public ForgotPasswordToken updateToken(ForgotPasswordToken token, String otp, VerificationType verificationType, String sendTo) {
+        token.setOtp(otp);
+        token.setVerificationType(verificationType);
+        token.setSendTo(sendTo);
+        return forgotPasswordRepository.save(token);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public ForgotPasswordToken findById(String id) {
         Optional<ForgotPasswordToken> token = forgotPasswordRepository.findById(id);
         return token.orElse(null);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ForgotPasswordToken findByUser(Long userId) {
         return forgotPasswordRepository.findByUserId(userId);
     }
+    
     @Override
+    @Transactional
     public void deleteToken(ForgotPasswordToken token) {
         forgotPasswordRepository.delete(token);
     }

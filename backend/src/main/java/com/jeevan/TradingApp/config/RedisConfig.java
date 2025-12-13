@@ -40,7 +40,6 @@ public class RedisConfig {
         template.afterPropertiesSet();
         return template;
     }
-
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
         RedisCacheConfiguration cacheConfig = RedisCacheConfiguration.defaultCacheConfig()

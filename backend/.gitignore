@@ -31,3 +31,15 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Spring Boot config
+application.properties
+application.yml
+
+# Service account / credentials
+tradingchatbot-service-account.json
+application.propeties
+*.pem
+*.key
+*.env
+

@@ -14,11 +14,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:5173", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.PATCH, RequestMethod.OPTIONS})
 public class UserController {
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
     @Autowired
     private EmailService emailService;
 
@@ -70,35 +75,61 @@ public class UserController {
 
     @PostMapping("/auth/users/reset-password/send-otp")
     public ResponseEntity<AuthResponse> sendForgotPasswordOtp(@RequestBody ForgotPasswordTokenRequest request) throws Exception {
-        User user = userService.findUserByEmail(request.getSendTo());
-        String otp = OtpUtils.generateOTP();
-        UUID uuid = UUID.randomUUID();
-        String id = uuid.toString();
-        ForgotPasswordToken token = forgotPasswordService.findByUser(user.getId());
-        if(token == null){
-            token = forgotPasswordService.createToken(user , id , otp ,request.getVerificationType() , request.getSendTo());
+        logger.info("Received forgot password request for: {}", request.getSendTo());
+        logger.info("Verification type: {}", request.getVerificationType());
+        
+        try {
+            User user = userService.findUserByEmail(request.getSendTo());
+            logger.info("User found: {}", user.getEmail());
+            
+            String otp = OtpUtils.generateOTP();
+            ForgotPasswordToken token = forgotPasswordService.findByUser(user.getId());
+            if(token == null){
+                UUID uuid = UUID.randomUUID();
+                String id = uuid.toString();
+                token = forgotPasswordService.createToken(user , id , otp ,request.getVerificationType() , request.getSendTo());
+                logger.info("Created new forgot password token with ID: {}", id);
+            } else {
+                // Update existing token with new OTP
+                token = forgotPasswordService.updateToken(token, otp, request.getVerificationType(), request.getSendTo());
+                logger.info("Updated existing forgot password token with ID: {} with new OTP", token.getId());
+            }
+            if(request.getVerificationType().equals(VerificationType.EMAIL)){
+                emailService.sendVerificationOtpEmail(user.getEmail() , token.getOtp());
+                logger.info("Verification OTP email sent to: {}", user.getEmail());
+            }
+            AuthResponse response = new AuthResponse();
+            response.setSession(token.getId());
+            response.setMessage("Password reset otp sent successfully");
+            logger.info("Successfully processed forgot password request");
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            logger.error("Error processing forgot password request: ", e);
+            throw e;
         }
-        if(request.getVerificationType().equals(VerificationType.EMAIL)){
-            emailService.sendVerificationOtpEmail(user.getEmail() , token.getOtp());
-        }
-        AuthResponse response = new AuthResponse();
-        response.setSession(token.getId());
-        response.setMessage("Password reset otp sent successfully");
-        return new ResponseEntity<>(response, HttpStatus.OK);
     }
     @PatchMapping("/auth/users/reset-password/verify-otp")
     public ResponseEntity<ApiResponse> resetPassword(
             @RequestParam String id,
-            @RequestBody ResetPasswordRequest req,
-            @RequestHeader("Authorization") String jwt) throws Exception {
+            @RequestBody ResetPasswordRequest req) throws Exception {
+            logger.info("Received password reset request with token ID: {}", id);
             ForgotPasswordToken forgotPasswordToken  = forgotPasswordService.findById(id);
+            if(forgotPasswordToken == null){
+                logger.error("Forgot password token not found for ID: {}", id);
+                throw new Exception("Invalid or expired reset token");
+            }
             boolean isVerified = forgotPasswordToken.getOtp().equals(req.getOtp());
             if(isVerified){
+                logger.info("OTP verified successfully for user: {}", forgotPasswordToken.getUser().getEmail());
                 userService.updatePassword(forgotPasswordToken.getUser() , req.getPassword());
+                // Delete the token after successful password reset
+                forgotPasswordService.deleteToken(forgotPasswordToken);
                 ApiResponse apiResponse = new ApiResponse();
                 apiResponse.setMessage("password updated successfully");
+                logger.info("Password updated successfully for user: {}", forgotPasswordToken.getUser().getEmail());
                 return new ResponseEntity<>(apiResponse , HttpStatus.ACCEPTED);
             }
+            logger.warn("Invalid OTP provided for token ID: {}", id);
             throw new Exception("wrong otp");
     }
 }

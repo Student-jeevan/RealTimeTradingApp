@@ -13,6 +13,7 @@ import Portfolio from './pages/Portfolio/Portfolio'
 import Wallet from './pages/Wallet/Wallet'
 import Activity from './pages/Activity/Activity'
 import Auth from './pages/Auth/Auth'
+import ProtectedRoute from './components/ProtectedRoute'
 import {useDispatch ,useSelector} from 'react-redux'
 import { useEffect } from "react";
 import {getUser} from './State/Auth/Action'
@@ -35,7 +36,7 @@ function App() {
         <Route path='/portfolio' element={<Portfolio/>}/>
         <Route path='/activity' element={<Activity/>}/>
         <Route path='/wallet' element={<Wallet/>}/>
-        <Route path='/withdrawal' element={<Withdrawal/>}/>
+        <Route path='/withdrawals' element={<Withdrawal/>}/>
         <Route path='/payment-details' element={<PaymentDetails/>}/>
         <Route path='/market/:id' element={<StockDetails/>}/>
         <Route path='/watchlist' element={<Watchlist/>}/>
