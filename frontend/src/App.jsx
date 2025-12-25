@@ -14,38 +14,40 @@ import Wallet from './pages/Wallet/Wallet'
 import Activity from './pages/Activity/Activity'
 import Auth from './pages/Auth/Auth'
 import ProtectedRoute from './components/ProtectedRoute'
-import {useDispatch ,useSelector} from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useEffect } from "react";
-import {getUser} from './State/Auth/Action'
+import { getUser } from './State/Auth/Action'
+import { Toaster } from 'sonner';
 function App() {
-  const auth = useSelector(state=>state.auth);
+  const auth = useSelector(state => state.auth);
   const dispatch = useDispatch();
-  console.log("auth -- ",auth);
-  useEffect(()=>{
+  console.log("auth -- ", auth);
+  useEffect(() => {
     const jwt = auth.jwt || localStorage.getItem("jwt");
-    if(jwt) {
+    if (jwt) {
       dispatch(getUser(jwt));
     }
-  },[auth.jwt])
+  }, [auth.jwt])
   return (
-   <>
+    <>
       {auth.user ? <div>
-      <Navbar/>
-      <Routes>
-        <Route path='/' element={<Home/>}/>
-        <Route path='/portfolio' element={<Portfolio/>}/>
-        <Route path='/activity' element={<Activity/>}/>
-        <Route path='/wallet' element={<Wallet/>}/>
-        <Route path='/withdrawals' element={<Withdrawal/>}/>
-        <Route path='/payment-details' element={<PaymentDetails/>}/>
-        <Route path='/market/:id' element={<StockDetails/>}/>
-        <Route path='/watchlist' element={<Watchlist/>}/>
-        <Route path='/profile' element={<Profile/>}/>
-        <Route path='/search' element={<SearchCoin/>}/>
-        <Route path='*' element={<Notfound/>}/>
-      </Routes>
-      </div> : <Auth/>}
-   </>  
+        <Navbar />
+        <Routes>
+          <Route path='/' element={<Home />} />
+          <Route path='/portfolio' element={<Portfolio />} />
+          <Route path='/activity' element={<Activity />} />
+          <Route path='/wallet' element={<Wallet />} />
+          <Route path='/withdrawals' element={<Withdrawal />} />
+          <Route path='/payment-details' element={<PaymentDetails />} />
+          <Route path='/market/:id' element={<StockDetails />} />
+          <Route path='/watchlist' element={<Watchlist />} />
+          <Route path='/profile' element={<Profile />} />
+          <Route path='/search' element={<SearchCoin />} />
+          <Route path='*' element={<Notfound />} />
+        </Routes>
+      </div> : <Auth />}
+      <Toaster />
+    </>
   )
 }
 export default App;

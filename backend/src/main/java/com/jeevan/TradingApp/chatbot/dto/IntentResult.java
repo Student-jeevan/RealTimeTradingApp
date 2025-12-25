@@ -15,3 +15,4 @@ public class IntentResult {
     private String coinId; // Standardized coin ID (e.g., "bitcoin", "ethereum")
 }
 
+

@@ -10,7 +10,13 @@ import {
   GET_WITHDRAWAL_HISTORY_FAILURE,
   GET_WITHDRAWAL_REQUEST_REQUEST,
   GET_WITHDRAWAL_REQUEST_SUCCESS,
-  GET_WITHDRAWAL_REQUEST_FAILURE
+  GET_WITHDRAWAL_REQUEST_FAILURE,
+  ADD_PAYMENT_DETAILS_REQUEST,
+  ADD_PAYMENT_DETAILS_SUCCESS,
+  ADD_PAYMENT_DETAILS_FAILURE,
+  GET_PAYMENT_DETAILS_REQUEST,
+  GET_PAYMENT_DETAILS_SUCCESS,
+  GET_PAYMENT_DETAILS_FAILURE
 } from "./ActionTypes";
 
 const initialState = {
@@ -18,7 +24,8 @@ const initialState = {
   error: null,
   withdrawal: null,
   history: [],
-  requests: []
+  requests: [],
+  paymentDetails: null,
 };
 
 const withdrawalReducer = (state = initialState, action) => {
@@ -35,15 +42,15 @@ const withdrawalReducer = (state = initialState, action) => {
 
     /* 🔥 FIX: ONLY UPDATE STATUS */
     case WITHDRAWAL_PROCEED_SUCCESS:
-        return {
-            ...state,
-            requests: state.requests.map(item =>
-            item.id === action.payload.id
-                ? { ...item, status: action.payload.status }
-                : item
-            ),
-            loading: false
-        };
+      return {
+        ...state,
+        requests: state.requests.map(item =>
+          item.id === action.payload.id
+            ? { ...item, status: action.payload.status }
+            : item
+        ),
+        loading: false
+      };
 
     case GET_WITHDRAWAL_HISTORY_SUCCESS:
       return {
@@ -63,7 +70,19 @@ const withdrawalReducer = (state = initialState, action) => {
     case WITHDRAWAL_PROCEED_FAILURE:
     case GET_WITHDRAWAL_HISTORY_FAILURE:
     case GET_WITHDRAWAL_REQUEST_FAILURE:
+    case ADD_PAYMENT_DETAILS_FAILURE:
+    case GET_PAYMENT_DETAILS_FAILURE:
       return { ...state, loading: false, error: action.payload };
+
+    case ADD_PAYMENT_DETAILS_REQUEST:
+    case GET_PAYMENT_DETAILS_REQUEST:
+      return { ...state, loading: true, error: null };
+
+    case ADD_PAYMENT_DETAILS_SUCCESS:
+      return { ...state, paymentDetails: action.payload, loading: false };
+
+    case GET_PAYMENT_DETAILS_SUCCESS:
+      return { ...state, paymentDetails: action.payload, loading: false };
 
     default:
       return state;

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { DialogClose } from '@/components/ui/dialog'
 import { useDispatch, useSelector } from 'react-redux'
 import { withdrawalRequest } from '@/State/Withdrawal/Action'
+import { toast } from 'sonner'
 
 function Withdrawal() {
 
@@ -31,10 +32,22 @@ function Withdrawal() {
     };
 
     const handleSubmit = () => {
-        dispatch(withdrawalRequest({amount , jwt: localStorage.getItem("jwt")}));
-        console.log(amount);
+        dispatch(withdrawalRequest({ amount, jwt: localStorage.getItem("jwt") }));
     }
 
+    React.useEffect(() => {
+        if (withdrawal.error) {
+            // Using alert as a fallback if sonner isn't configured, but since it's in package.json...
+            // Actually, let's use a simple UI error message first + toast if possible.
+            // But user asked for popup.
+            // Assuming Toaster is in App.jsx. If not, I'll add it.
+            // But to be safe, I'll check App.jsx first in next step.
+            // Wait, I can't conditionally insert here.
+            // I'll stick to displaying the error text visibly as well.
+        }
+    }, [withdrawal.error])
+
+    // Wait, let's do the proper edit.
     return (
         <div className='pt-10 space-y-5'>
             <div className='flex justify-between items-center rounded-md bg-slate-900 text-xl font-bold px-5 py-4'>

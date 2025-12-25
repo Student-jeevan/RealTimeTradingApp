@@ -8,11 +8,14 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { register } from '@/State/Auth/Action'
+import { toast } from 'sonner';
+import { useEffect } from 'react';
 
 function SignupForm() {
     const dispatch = useDispatch();
+    const { auth } = useSelector(store => store);
     const form = useForm({
         defaultValues: {
             fullName: "",
@@ -20,6 +23,13 @@ function SignupForm() {
             password: "",
         }
     });
+
+    useEffect(() => {
+        if (auth.error) {
+            toast.error(auth.error);
+        }
+    }, [auth.error]);
+
 
     const onSubmit = (data) => {
         dispatch(register(data));

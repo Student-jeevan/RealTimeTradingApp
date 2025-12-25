@@ -1,0 +1,72 @@
+
+services:
+  mysql_db:
+    image: mysql:latest
+    container_name: crypto_db
+    restart: always
+    ports:
+      - "3308:3306"
+    env_file:
+      - ./mysql/.env
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - trading-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: CryptoApp-backend
+    restart: always
+    ports:
+      - "8081:8080"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend/credentials/tradingchatbot-service-account.json:/app/credentials/gcp.json
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/gcp.json
+    depends_on:
+      mysql_db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - trading-network
+
+  redis:
+    image: redis:alpine
+    container_name: crypto_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - trading-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: CryptoApp-frontend
+    restart: always
+    ports:
+      - "3001:5173"
+    env_file:
+      - ./frontend/.env
+    depends_on:
+      - backend
+    networks:
+      - trading-network
+
+networks:
+  trading-network:
+    driver: bridge
+
+volumes:
+  mysql_data:

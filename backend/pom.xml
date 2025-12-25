@@ -8,7 +8,7 @@
 		<version>3.5.5</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 	<groupId>com.jeevan</groupId>
 	<artifactId>TradingApp</artifactId>
 	<version>0.0.1-SNAPSHOT</version>

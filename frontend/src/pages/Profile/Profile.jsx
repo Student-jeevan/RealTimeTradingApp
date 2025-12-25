@@ -1,22 +1,38 @@
 import { Badge } from '@/components/ui/badge'
-import { Card ,CardTitle , CardHeader , CardContent } from '@/components/ui/card'
-import { Dialog ,DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,} from '@/components/ui/dialog'
+import { Card, CardTitle, CardHeader, CardContent } from '@/components/ui/card'
+import {
+    Dialog, DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog'
 import { VerifiedIcon } from 'lucide-react'
 import React from 'react'
 import { Button } from '@/components/ui/button'
 import AccountVerificationForm from './AccountVerificationForm'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
+import api from '@/config/api'
+import { getUser } from '@/State/Auth/Action'
+
 function Profile() {
     const auth = useSelector(state => state.auth);
+    const dispatch = useDispatch();
+
     const handleEnableTwoStepVerification = () => {
-           
         console.log('Two-step verification enabled');
-      }
+        dispatch(getUser(auth.user?.jwt));
+    }
+
+    const handleDisableTwoStepVerification = async () => {
+        try {
+            await api.patch('/api/users/two-factor/disable');
+            dispatch(getUser(auth.user?.jwt));
+        } catch (error) {
+            console.error("Error disabling 2FA:", error);
+        }
+    }
     return (
         <div className='flex flex-col items-center mb-5'>
             <div className='pt-10 w-full lg:w-[60%]'>
@@ -41,10 +57,10 @@ function Profile() {
                                 </div>
                                 <div className='flex'>
                                     <p className='w-[9rem]'>Nationality:</p>
-                                       <p className='text-gray-500'>Indian</p>
+                                    <p className='text-gray-500'>Indian</p>
                                 </div>
                             </div>
-                             <div className='space-y-7'>
+                            <div className='space-y-7'>
                                 <div className='flex'>
                                     <p className='w-[9rem]'>Adress:</p>
                                     <p className='text-gray-500'>tadkal</p>
@@ -64,35 +80,41 @@ function Profile() {
                             </div>
                         </div>
                     </CardContent>
-                </Card> 
+                </Card>
                 <div className='mt-6'>
                     <Card className='w-full'>
                         <CardHeader className='pb-7'>
                             <div className='flex items-center gap-3'>
                                 <CardTitle>Two Step Verification</CardTitle>
-                                    {true?<Badge className='bg-green-500'>
-                                        <VerifiedIcon/>
+                                {auth.user?.twoFactorAuth?.enabled ? (
+                                    <Badge className='bg-green-500'>
+                                        <VerifiedIcon />
                                         <span>Enabled</span>
-                                       </Badge>:<Badge className='bg-green-500'>
-                                        <VerifiedIcon/>
-                                        <span>Enabled</span>
-                                       </Badge>}
-                                   
+                                    </Badge>
+                                ) : (
+                                    <Badge className='bg-orange-500'>
+                                        <span>Disabled</span>
+                                    </Badge>
+                                )}
                             </div>
                         </CardHeader>
                         <CardContent>
                             <div>
-                                <Dialog>
-                                    <DialogTrigger>
-                                        <Button>Enabled Two Step Verification</Button>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                        <DialogHeader>
-                                        <DialogTitle>Verify your account?</DialogTitle>
-                                        </DialogHeader>
-                                        <AccountVerificationForm handleSumbit={handleEnableTwoStepVerification}/>
-                                    </DialogContent>
+                                {auth.user?.twoFactorAuth?.enabled ? (
+                                    <Button onClick={handleDisableTwoStepVerification}>Disable Two Step Verification</Button>
+                                ) : (
+                                    <Dialog>
+                                        <DialogTrigger>
+                                            <Button>Enable Two Step Verification</Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader>
+                                                <DialogTitle>Verify your account?</DialogTitle>
+                                            </DialogHeader>
+                                            <AccountVerificationForm handleSumbit={handleEnableTwoStepVerification} />
+                                        </DialogContent>
                                     </Dialog>
+                                )}
                             </div>
                         </CardContent>
                     </Card>

@@ -3,12 +3,12 @@ import React from 'react'
 import { useForm } from 'react-hook-form'
 import {
     Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormDescription,
-  FormMessage,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormControl,
+    FormDescription,
+    FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -16,17 +16,29 @@ import { DialogClose } from '@/components/ui/dialog'
 import { useDispatch } from 'react-redux'
 import { login } from '@/State/Auth/Action'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner';
+import { useSelector } from 'react-redux';
+import { useEffect } from 'react';
+
 function SiginForm() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const { auth } = useSelector(store => store);
     const form = useForm({
-        resolver:"",
-        defaultValues:{
-            email:"",
-            password:"",
+        resolver: "",
+        defaultValues: {
+            email: "",
+            password: "",
         }
     })
-    const onSubmit=(data)=>{
+
+    useEffect(() => {
+        if (auth.error) {
+            toast.error(auth.error);
+        }
+    }, [auth.error]);
+
+    const onSubmit = (data) => {
         dispatch(login(data, navigate));
         console.log(data);
     }
@@ -36,31 +48,31 @@ function SiginForm() {
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
                     <FormField
-                       control={form.control}
+                        control={form.control}
                         name="email"
                         render={({ field }) => (
                             <FormItem>
-                            <FormControl>
-                                <Input  className='border w-full border-gray-700 p-5'  placeholder="user@gmail.com" {...field} />
-                            </FormControl>
+                                <FormControl>
+                                    <Input className='border w-full border-gray-700 p-5' placeholder="user@gmail.com" {...field} />
+                                </FormControl>
                             </FormItem>
-                       )}
-                   />
-                   <FormField
-                       control={form.control}
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
                         name="password"
                         render={({ field }) => (
                             <FormItem>
-                            <FormControl>
-                                <Input  className='border w-full border-gray-700 p-5'  placeholder="your password" {...field} />
-                            </FormControl>
+                                <FormControl>
+                                    <Input className='border w-full border-gray-700 p-5' placeholder="your password" {...field} />
+                                </FormControl>
                             </FormItem>
-                       )}
-                   />
-                     <Button type='submit' className='w-full py-5'>
-                     Submit
-                   </Button>
-                 
+                        )}
+                    />
+                    <Button type='submit' className='w-full py-5'>
+                        Submit
+                    </Button>
+
                 </form>
             </Form>
         </div>

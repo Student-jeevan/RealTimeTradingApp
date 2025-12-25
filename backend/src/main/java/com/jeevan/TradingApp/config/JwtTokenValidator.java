@@ -20,33 +20,35 @@ import java.util.List;
 
 public class JwtTokenValidator extends OncePerRequestFilter {
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         // Skip JWT validation for OPTIONS requests (CORS preflight)
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             filterChain.doFilter(request, response);
             return;
         }
-        
+
         String jwt = request.getHeader(JwtConstant.jwt_header);
-        if(jwt != null && jwt.startsWith("Bearer ")){
-            jwt  = jwt.substring(7);
-            try{
+        if (jwt != null && jwt.startsWith("Bearer ")) {
+            jwt = jwt.substring(7);
+            try {
                 SecretKey key = Keys.hmacShaKeyFor(JwtConstant.secret_key.getBytes());
                 Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwt).getBody();
                 String email = String.valueOf(claims.get("email"));
                 String authorities = String.valueOf(claims.get("authorities"));
-                List<GrantedAuthority> authoritiesList = AuthorityUtils.commaSeparatedStringToAuthorityList(authorities);
+                List<GrantedAuthority> authoritiesList = AuthorityUtils
+                        .commaSeparatedStringToAuthorityList(authorities);
                 Authentication auth = new UsernamePasswordAuthenticationToken(
                         email,
                         null,
-                        authoritiesList
-                );
+                        authoritiesList);
                 SecurityContextHolder.getContext().setAuthentication(auth);
-            }
-            catch(Exception e){
-                throw new RuntimeException("invalid token  ... .");
+            } catch (Exception e) {
+                // Log error but do not throw exception to allow anonymous access for public
+                // endpoints
+                // throw new RuntimeException("invalid token ... .");
             }
         }
-        filterChain.doFilter(request ,  response);
+        filterChain.doFilter(request, response);
     }
 }

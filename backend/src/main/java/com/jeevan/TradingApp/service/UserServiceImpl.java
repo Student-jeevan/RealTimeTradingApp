@@ -10,23 +10,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+
 @Service
-public class UserServiceImpl implements UserService{
+public class UserServiceImpl implements UserService {
     @Autowired
     private UserRepository userRepository;
+
     @Override
     public User findUserProfileByJwt(String jwt) throws Exception {
         String email = JwtProvider.getEmailFromToken(jwt);
         User user = userRepository.findByEmail(email);
-        if(user == null){
+        if (user == null) {
             throw new Exception("user not found");
         }
         return user;
     }
+
     @Override
     public User findUserByEmail(String email) throws Exception {
         User user = userRepository.findByEmail(email);
-        if(user == null){
+        if (user == null) {
             throw new Exception("user not found");
         }
         return user;
@@ -34,8 +37,8 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public User findUserById(Long userId) throws Exception {
-        Optional<User>  user = userRepository.findById(userId);
-        if(user.isEmpty()){
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
             throw new Exception("user not found");
         }
         return user.get();
@@ -46,6 +49,15 @@ public class UserServiceImpl implements UserService{
         TwoFactorAuth twoFactorAuth = new TwoFactorAuth();
         twoFactorAuth.setEnabled(true);
         twoFactorAuth.setSendTo(verificationType);
+        user.setTwoFactorAuth(twoFactorAuth);
+        return userRepository.save(user);
+    }
+
+    @Override
+    public User updateTwoFactorAuthStatus(User user, boolean enabled) {
+        TwoFactorAuth twoFactorAuth = user.getTwoFactorAuth();
+        twoFactorAuth.setEnabled(enabled);
+        twoFactorAuth.setSendTo(enabled ? twoFactorAuth.getSendTo() : null);
         user.setTwoFactorAuth(twoFactorAuth);
         return userRepository.save(user);
     }

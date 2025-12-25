@@ -15,33 +15,35 @@ import java.util.Collections;
 
 @Configuration
 public class AppConfig {
-    @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
-        http.sessionManagement(management->management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(Authorize->Authorize
-                        .requestMatchers("/api/**").authenticated()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .anyRequest().permitAll())
-                .addFilterBefore(new JwtTokenValidator()  , BasicAuthenticationFilter.class )
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors->cors.configurationSource(corsConfigurationSource()));
-            return http.build();
-    }
-    private CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration cfg = new CorsConfiguration();
-        cfg.setAllowedOrigins(Arrays.asList(
-                "http://localhost:5173" // Vite dev server
-        ));
-        cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        cfg.setAllowedHeaders(Collections.singletonList("*"));
-        cfg.setExposedHeaders(Arrays.asList("Authorization"));
-        cfg.setAllowCredentials(true);
-        cfg.setMaxAge(3600L);
+        @Bean
+        SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                http.sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .authorizeHttpRequests(Authorize -> Authorize
+                                                .requestMatchers("/api/**").authenticated()
+                                                .requestMatchers("/auth/**").permitAll()
+                                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                                .anyRequest().permitAll())
+                                .addFilterBefore(new JwtTokenValidator(), BasicAuthenticationFilter.class)
+                                .csrf(AbstractHttpConfigurer::disable)
+                                .cors(cors -> cors.configurationSource(corsConfigurationSource()));
+                return http.build();
+        }
 
-        org.springframework.web.cors.UrlBasedCorsConfigurationSource source =
-                new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", cfg);
-        return source;
-    }
+        private CorsConfigurationSource corsConfigurationSource() {
+                CorsConfiguration cfg = new CorsConfiguration();
+                cfg.setAllowedOrigins(Arrays.asList(
+                                "http://localhost:5173", // Vite dev server
+                                "http://localhost:3001" // Docker mapped port
+                ));
+                cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+                cfg.setAllowedHeaders(Collections.singletonList("*"));
+                cfg.setExposedHeaders(Arrays.asList("Authorization"));
+                cfg.setAllowCredentials(true);
+                cfg.setMaxAge(3600L);
+
+                org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+                source.registerCorsConfiguration("/**", cfg);
+                return source;
+        }
 
 }

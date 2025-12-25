@@ -21,23 +21,28 @@ public class PaymentDetailsController {
 
     @PostMapping("/payment-details")
 
-    public ResponseEntity<PaymentDetails> addPaymentDetails(@RequestBody PaymentDetails paymentDetailsRequest , @RequestHeader("Authorization") String jwt) throws Exception {
-        User user = userService.findUserProfileByJwt(jwt);
-        PaymentDetails paymentDetails = paymentDetailsService.addPaymentDetails(
-                paymentDetailsRequest.getAccountNumber() ,
-                paymentDetailsRequest.getAccountHolderName(),
-                paymentDetailsRequest.getIfsc(),
-                paymentDetailsRequest.getBankName(),
-                user
-        );
-        return new ResponseEntity<>(paymentDetails, HttpStatus.CREATED);
+    public ResponseEntity<?> addPaymentDetails(@RequestBody PaymentDetails paymentDetailsRequest,
+            @RequestHeader("Authorization") String jwt) {
+        try {
+            User user = userService.findUserProfileByJwt(jwt);
+            PaymentDetails paymentDetails = paymentDetailsService.addPaymentDetails(
+                    paymentDetailsRequest.getAccountNumber(),
+                    paymentDetailsRequest.getAccountHolderName(),
+                    paymentDetailsRequest.getIfsc(),
+                    paymentDetailsRequest.getBankName(),
+                    user);
+            return new ResponseEntity<>(paymentDetails, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
     }
 
     @GetMapping("/payment-details")
-    public ResponseEntity<PaymentDetails> getUsersPaymentDetails(@RequestHeader("Authorization") String jwt) throws Exception {
+    public ResponseEntity<PaymentDetails> getUsersPaymentDetails(@RequestHeader("Authorization") String jwt)
+            throws Exception {
         User user = userService.findUserProfileByJwt(jwt);
         PaymentDetails paymentDetails = paymentDetailsService.getUsersPaymentDetails(user);
-        return new ResponseEntity<>(paymentDetails , HttpStatus.CREATED);
+        return new ResponseEntity<>(paymentDetails, HttpStatus.CREATED);
     }
 
 }
