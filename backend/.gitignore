@@ -42,3 +42,4 @@ application.propeties
 *.key
 *.env
 
+target/ 

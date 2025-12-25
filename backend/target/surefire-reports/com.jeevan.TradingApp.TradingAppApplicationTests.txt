@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.jeevan.TradingApp.TradingAppApplicationTests
--------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 10.07 s -- in com.jeevan.TradingApp.TradingAppApplicationTests
