@@ -26,14 +26,14 @@ public class WalletController {
 
     @Autowired
     private PaymentService paymentService;
-    
+
     @GetMapping("/api/wallet")
     public ResponseEntity<Wallet> getUserWallet(@RequestHeader("Authorization") String jwt) throws Exception {
         User user = userService.findUserProfileByJwt(jwt);
 
-        Wallet wallet  = walletService.getUserWallet(user);
+        Wallet wallet = walletService.getUserWallet(user);
 
-        return new ResponseEntity<>(wallet , HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(wallet, HttpStatus.ACCEPTED);
 
     }
 
@@ -41,47 +41,46 @@ public class WalletController {
     public ResponseEntity<Wallet> walletToWalletTransfer(
             @RequestHeader("Authorization") String jwt,
             @PathVariable Long walletId,
-            @RequestBody WalletTransaction req
-            ) throws Exception {
+            @RequestBody WalletTransaction req) throws Exception {
         User senderUser = userService.findUserProfileByJwt(jwt);
         Wallet receiverWallet = walletService.findWalletById(walletId);
-        Wallet wallet = walletService.walletToWalletTransfer(senderUser, receiverWallet , req.getAmount());
+        Wallet wallet = walletService.walletToWalletTransfer(senderUser, receiverWallet, req.getAmount());
 
-        return new ResponseEntity<>(wallet , HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(wallet, HttpStatus.ACCEPTED);
     }
 
     @PutMapping("/api/wallet/order/{orderId}/pay")
     public ResponseEntity<Wallet> payOrderPayment(
             @RequestHeader("Authorization") String jwt,
-            @PathVariable Long orderId
-    ) throws Exception {
+            @PathVariable Long orderId) throws Exception {
         User user = userService.findUserProfileByJwt(jwt);
         Order order = orderService.getOrderById(orderId);
 
-        Wallet wallet = walletService.payOrderPayment(order , user);
-        return new ResponseEntity<>(wallet , HttpStatus.ACCEPTED);
+        Wallet wallet = walletService.payOrderPayment(order, user);
+        return new ResponseEntity<>(wallet, HttpStatus.ACCEPTED);
     }
 
     @PutMapping("/api/wallet/deposit")
     public ResponseEntity<Wallet> addMoneyToWallet(
             @RequestHeader("Authorization") String jwt,
-            @RequestParam(name="order_id") Long orderId ,
-            @RequestParam(name="payment_id") String paymentId
-    ) throws Exception {
+            @RequestParam(name = "order_id") Long orderId,
+            @RequestParam(name = "payment_id") String paymentId) throws Exception {
         User user = userService.findUserProfileByJwt(jwt);
-
 
         Wallet wallet = walletService.getUserWallet(user);
 
         PaymentOrder order = paymentService.getPaymentOrderById(orderId);
 
-        Boolean status = paymentService.ProceedPaymentOrder(order , paymentId);
-        if(wallet.getBalance() == null){
+        Boolean status = paymentService.ProceedPaymentOrder(order, paymentId);
+        if (wallet.getBalance() == null) {
             wallet.setBalance(BigDecimal.valueOf(0));
         }
-        if(status){
-            wallet = walletService.addBalance(wallet , order.getAmount());
+        if (status) {
+            // Convert INR to USD (Assuming 1 USD = 83 INR)
+            BigDecimal inrAmount = BigDecimal.valueOf(order.getAmount());
+            BigDecimal usdAmount = inrAmount.divide(BigDecimal.valueOf(83), 2, java.math.RoundingMode.HALF_UP);
+            wallet = walletService.addBalance(wallet, usdAmount);
         }
-        return new ResponseEntity<>(wallet , HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(wallet, HttpStatus.ACCEPTED);
     }
 }

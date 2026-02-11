@@ -6,13 +6,14 @@ import { Button } from '@/components/ui/button'
 import { DialogClose } from '@/components/ui/dialog'
 import { useDispatch, useSelector } from 'react-redux'
 import { withdrawalRequest } from '@/State/Withdrawal/Action'
+import { getUserWallet } from '@/State/Wallet/Action';
 import { toast } from 'sonner'
 
 function Withdrawal() {
 
     const [amount, setAmount] = React.useState('')
     const dispatch = useDispatch();
-    const { withdrawal } = useSelector(store => store);
+    const { withdrawal, wallet } = useSelector(store => store);
 
     const handleChange = (e) => {
         setAmount(e.target.value)
@@ -32,27 +33,34 @@ function Withdrawal() {
     };
 
     const handleSubmit = () => {
+        if (wallet.userWallet?.balance < Number(amount)) {
+            // Ideally use toast here, but relying on backend error message prop logic for display if implemented, 
+            // but user requested "Show error message...". 
+            // I will let the backend fail based on the requirement "Validate: If withdrawal amount > wallet balance -> return error". 
+            // But I can also block it here.
+            // "Prevent withdrawal submission when balance is insufficient." -> OK, I will block here.
+            toast.error("Insufficient balance");
+            return;
+        }
         dispatch(withdrawalRequest({ amount, jwt: localStorage.getItem("jwt") }));
     }
 
     React.useEffect(() => {
+        dispatch(getUserWallet(localStorage.getItem("jwt")));
+    }, []);
+
+    React.useEffect(() => {
         if (withdrawal.error) {
-            // Using alert as a fallback if sonner isn't configured, but since it's in package.json...
-            // Actually, let's use a simple UI error message first + toast if possible.
-            // But user asked for popup.
-            // Assuming Toaster is in App.jsx. If not, I'll add it.
-            // But to be safe, I'll check App.jsx first in next step.
-            // Wait, I can't conditionally insert here.
-            // I'll stick to displaying the error text visibly as well.
+            // Error handling is managed by store state, maybe show a message
         }
     }, [withdrawal.error])
 
-    // Wait, let's do the proper edit.
+
     return (
         <div className='pt-10 space-y-5'>
             <div className='flex justify-between items-center rounded-md bg-slate-900 text-xl font-bold px-5 py-4'>
                 <p>Available balance</p>
-                <p>$90000</p>
+                <p>${wallet.userWallet?.balance}</p>
             </div>
 
             <div className='flex flex-col items-center'>
@@ -88,6 +96,12 @@ function Withdrawal() {
                     </div>
                 </div>
             </div>
+
+            {withdrawal.error && (
+                <div className='text-red-500 text-center font-bold'>
+                    {withdrawal.error}
+                </div>
+            )}
 
             <DialogClose className='w-full'>
                 <Button

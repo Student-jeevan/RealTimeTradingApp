@@ -1,6 +1,7 @@
 import './App.css'
 import Navbar from './pages/Navbar/Navbar'
 import Home from './pages/Home/Home'
+import LandingPage from './pages/Home/LandingPage'
 import { Route, Routes } from 'react-router-dom'
 import Withdrawal from './pages/Withdrawal/Withdrawal'
 import PaymentDetails from './pages/Payment Details/PaymentDetails'
@@ -45,7 +46,15 @@ function App() {
           <Route path='/search' element={<SearchCoin />} />
           <Route path='*' element={<Notfound />} />
         </Routes>
-      </div> : <Auth />}
+      </div> :
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/signin" element={<Auth />} />
+          <Route path="/signup" element={<Auth />} />
+          <Route path="/forgot-password" element={<Auth />} />
+          <Route path="*" element={<LandingPage />} />
+        </Routes>
+      }
       <Toaster />
     </>
   )

@@ -12,14 +12,14 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 @Service
-public class WalletServiceImpl implements WalletService{
+public class WalletServiceImpl implements WalletService {
     @Autowired
     private WalletRepository walletRepository;
 
     @Override
     public Wallet getUserWallet(User user) {
-        Wallet wallet  = walletRepository.findByUserId(user.getId());
-        if(wallet == null){
+        Wallet wallet = walletRepository.findByUserId(user.getId());
+        if (wallet == null) {
             wallet = new Wallet();
             wallet.setUser(user);
             walletRepository.save(wallet);
@@ -28,9 +28,9 @@ public class WalletServiceImpl implements WalletService{
     }
 
     @Override
-    public Wallet addBalance(Wallet wallet, Long money) {
+    public Wallet addBalance(Wallet wallet, BigDecimal money) {
         BigDecimal balance = wallet.getBalance();
-        BigDecimal newBalance = balance.add(BigDecimal.valueOf(money));
+        BigDecimal newBalance = balance.add(money);
         wallet.setBalance(newBalance);
         return walletRepository.save(wallet);
     }
@@ -38,7 +38,7 @@ public class WalletServiceImpl implements WalletService{
     @Override
     public Wallet findWalletById(Long id) throws Exception {
         Optional<Wallet> wallet = walletRepository.findById(id);
-        if(wallet.isPresent()){
+        if (wallet.isPresent()) {
             return wallet.get();
         }
         throw new Exception("wallet not found");
@@ -69,14 +69,13 @@ public class WalletServiceImpl implements WalletService{
     @Override
     public Wallet payOrderPayment(Order order, User user) throws Exception {
         Wallet wallet = getUserWallet(user);
-        if(order.getOrderType().equals(OrderType.BUY)){
+        if (order.getOrderType().equals(OrderType.BUY)) {
             BigDecimal newBalance = wallet.getBalance().subtract(order.getPrice());
-            if(newBalance.compareTo(order.getPrice())<0){
+            if (newBalance.compareTo(order.getPrice()) < 0) {
                 throw new Exception("Insufficient funds for this transaction");
             }
             wallet.setBalance(newBalance);
-        }
-        else{
+        } else {
             BigDecimal newBalance = wallet.getBalance().add(order.getPrice());
             wallet.setBalance(newBalance);
         }

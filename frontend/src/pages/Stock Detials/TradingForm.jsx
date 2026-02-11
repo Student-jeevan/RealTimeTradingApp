@@ -7,6 +7,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { getUserWallet } from "@/State/Wallet/Action";
 import { getAssetDetails } from "@/State/Asset/Action";
 import { payOrder } from "@/State/Order/Action";
+import { toast } from "sonner";
 
 function TradingForm() {
   const [amount, setAmount] = useState(0);
@@ -60,20 +61,31 @@ function TradingForm() {
     return volume.toFixed(6);
   };
 
-  const handleBuyCrypto = () => {
+  const handleBuyCrypto = async () => {
     if (!jwt || !coin?.coinDetails?.id) return;
 
-    dispatch(
-      payOrder({
-        jwt,
-        amount,
-        orderData: {
-          coinId: coin.coinDetails.id,
-          quantity: Number(quantity),
-          orderType,
-        },
-      })
-    );
+    try {
+      await dispatch(
+        payOrder({
+          jwt,
+          amount,
+          orderData: {
+            coinId: coin.coinDetails.id,
+            quantity: Number(quantity),
+            orderType,
+          },
+        })
+      );
+
+      toast.success(`${orderType} Order Placed Successfully`);
+
+      // Refresh Data
+      dispatch(getUserWallet(jwt));
+      dispatch(getAssetDetails({ coinId: coin.coinDetails.id, jwt }));
+
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Order Failed");
+    }
   };
 
   /* -------------------- UI -------------------- */
@@ -158,11 +170,10 @@ function TradingForm() {
       <div>
         <Button
           onClick={handleBuyCrypto}
-          className={`w-full py-6 ${
-            orderType === "SELL"
-              ? "bg-red-600 text-white"
-              : ""
-          }`}
+          className={`w-full py-6 ${orderType === "SELL"
+            ? "bg-red-600 text-white"
+            : ""
+            }`}
         >
           {orderType}
         </Button>

@@ -57,7 +57,7 @@ public class WithdrawalController {
         Wallet userWallet = walletService.getUserWallet(user);
 
         if (!accept) {
-            walletService.addBalance(userWallet, withdrawal.getAmount());
+            walletService.addBalance(userWallet, java.math.BigDecimal.valueOf(withdrawal.getAmount()));
         }
         return new ResponseEntity<>(withdrawal, HttpStatus.OK);
     }

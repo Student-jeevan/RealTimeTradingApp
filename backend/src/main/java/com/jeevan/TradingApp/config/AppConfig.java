@@ -32,9 +32,11 @@ public class AppConfig {
         private CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration cfg = new CorsConfiguration();
                 cfg.setAllowedOrigins(Arrays.asList(
-                                "http://localhost:5173", // Vite dev server
-                                "http://localhost:3001" // Docker mapped port
-                ));
+        "http://localhost:5173",
+        "http://localhost:3001",
+        "http://51.20.132.249:3001"
+));
+
                 cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                 cfg.setAllowedHeaders(Collections.singletonList("*"));
                 cfg.setExposedHeaders(Arrays.asList("Authorization"));

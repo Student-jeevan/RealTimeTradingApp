@@ -231,3 +231,4 @@ UPDATE User SET role = 'ROLE_ADMIN' WHERE email = 'admin@example.com';
 Or create a backend endpoint to change user roles (for development only).
 
 
+
