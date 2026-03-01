@@ -32,10 +32,9 @@ public class AppConfig {
         private CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration cfg = new CorsConfiguration();
                 cfg.setAllowedOrigins(Arrays.asList(
-        "http://localhost:5173",
-        "http://localhost:3001",
-        "http://51.20.132.249:3001"
-));
+                                "http://13.49.225.93",
+                                "http://13.49.225.93:5173"
+                ));
 
                 cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                 cfg.setAllowedHeaders(Collections.singletonList("*"));

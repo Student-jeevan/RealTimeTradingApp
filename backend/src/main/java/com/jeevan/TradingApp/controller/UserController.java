@@ -20,8 +20,9 @@ import org.slf4j.LoggerFactory;
 import java.util.UUID;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173", allowedHeaders = "*", methods = { RequestMethod.GET, RequestMethod.POST,
-        RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.PATCH, RequestMethod.OPTIONS })
+@CrossOrigin(origins = { "http://13.49.225.93", "http://13.49.225.93:5173" }, allowedHeaders = "*", methods = {
+        RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.PATCH,
+        RequestMethod.OPTIONS })
 public class UserController {
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
