@@ -8,7 +8,7 @@ import {
   LOGIN_TWO_STEP_REQUEST, LOGIN_TWO_STEP_SUCCESS, LOGIN_TWO_STEP_FAILURE
 } from "./ActionTypes";
 import axios from "axios";
-const baseURL = import.meta.env.VITE_API_BASE_URL;
+import { API_BASE_URL as baseURL } from "../../config/api";
 export const register = (userData) => async (dispatch) => {
   dispatch({ type: REGISTER_REQUEST });
   try {
