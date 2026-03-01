@@ -23,6 +23,18 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
+@CrossOrigin(
+        origins = { "http://13.49.225.93", "http://13.49.225.93:5173" },
+        allowedHeaders = "*",
+        methods = {
+                RequestMethod.GET,
+                RequestMethod.POST,
+                RequestMethod.PUT,
+                RequestMethod.DELETE,
+                RequestMethod.PATCH,
+                RequestMethod.OPTIONS
+        }
+)
 public class AuthController {
     @Autowired
     private UserRepository userRepository;
