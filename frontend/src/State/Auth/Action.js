@@ -8,7 +8,8 @@ import {
   LOGIN_TWO_STEP_REQUEST, LOGIN_TWO_STEP_SUCCESS, LOGIN_TWO_STEP_FAILURE
 } from "./ActionTypes";
 import axios from "axios";
-import { API_BASE_URL as baseURL } from "../../config/api";
+// import { API_BASE_URL as baseURL } from "../../config/api";
+const baseURL = "http://13.49.225.93:8080";
 export const register = (userData) => async (dispatch) => {
   dispatch({ type: REGISTER_REQUEST });
   try {
