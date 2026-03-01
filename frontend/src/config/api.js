@@ -1,10 +1,7 @@
 import axios from 'axios';
 
-// Prefer explicit environment configuration, fall back to current origin
-export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  import.meta.env.REACT_APP_API_URL ||
-  window.location.origin;
+// TEMP: hardcode backend URL for production EC2
+export const API_BASE_URL = 'http://13.49.225.93:8080';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
