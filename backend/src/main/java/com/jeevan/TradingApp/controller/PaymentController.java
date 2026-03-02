@@ -14,9 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @RestController
-@CrossOrigin(origins = { "http://13.49.225.93", "http://13.49.225.93:5173" }, allowedHeaders = "*", methods = {
-        RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.PATCH,
-        RequestMethod.OPTIONS })
 public class PaymentController {
     private static final Logger logger = LoggerFactory.getLogger(PaymentController.class);
 

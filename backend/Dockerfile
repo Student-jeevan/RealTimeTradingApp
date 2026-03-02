@@ -17,14 +17,12 @@ WORKDIR /app
 # Copy the specific jar file to avoid wildcard issues
 COPY --from=build /app/target/TradingApp-0.0.1-SNAPSHOT.jar app.jar
 
-# Copy credentials directory
+# Optional credentials directory (local only)
 COPY credentials /app/credentials
 
-# Set environment variable for Google Credentials
-ENV GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/tradingchatbot-service-account.json
-
-# Expose backend port
-EXPOSE 8080
+# Expose backend port inside container
+EXPOSE 8081
 
 # Run the Spring Boot application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Uses PORT env if set, otherwise defaults to 8081
+ENTRYPOINT ["sh", "-c", "java -jar app.jar --server.address=0.0.0.0 --server.port=${PORT:-8081}"]

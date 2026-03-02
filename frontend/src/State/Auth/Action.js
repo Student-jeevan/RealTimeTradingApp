@@ -9,7 +9,7 @@ import {
 } from "./ActionTypes";
 import axios from "axios";
 // import { API_BASE_URL as baseURL } from "../../config/api";
-const baseURL = "http://13.49.225.93:8080";
+const baseURL = "http://localhost:8081";
 export const register = (userData) => async (dispatch) => {
   dispatch({ type: REGISTER_REQUEST });
   try {

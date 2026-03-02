@@ -28,25 +28,22 @@ public class AppConfig {
                                 .cors(cors -> cors.configurationSource(corsConfigurationSource()));
                 return http.build();
         }
-        
+
         private CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration cfg = new CorsConfiguration();
+                CorsConfiguration cfg = new CorsConfiguration();
 
-    // Allow your origins (you can add more later)
-    cfg.setAllowedOriginPatterns(Collections.singletonList("*"));
-    // or, if you want to be strict:
-    // cfg.setAllowedOrigins(Arrays.asList("http://13.49.225.93", "http://13.49.225.93:5173"));
+                // Allow your origins (you can add more later)
+                cfg.setAllowedOriginPatterns(Collections.singletonList("*"));
 
-    cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-    cfg.setAllowedHeaders(Collections.singletonList("*"));
-    cfg.setExposedHeaders(Arrays.asList("Authorization"));
-    cfg.setAllowCredentials(true);
-    cfg.setMaxAge(3600L);
+                cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+                cfg.setAllowedHeaders(Collections.singletonList("*"));
+                cfg.setExposedHeaders(Arrays.asList("Authorization"));
+                cfg.setAllowCredentials(true);
+                cfg.setMaxAge(3600L);
 
-    org.springframework.web.cors.UrlBasedCorsConfigurationSource source =
-            new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", cfg);
-    return source;
-}
+                org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+                source.registerCorsConfiguration("/**", cfg);
+                return source;
+        }
 
 }

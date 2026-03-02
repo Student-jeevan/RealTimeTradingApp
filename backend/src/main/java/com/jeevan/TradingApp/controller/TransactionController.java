@@ -18,9 +18,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@CrossOrigin(origins = { "http://13.49.225.93", "http://13.49.225.93:5173" }, allowedHeaders = "*", methods = {
-        RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.PATCH,
-        RequestMethod.OPTIONS })
 public class TransactionController {
     private static final Logger logger = LoggerFactory.getLogger(TransactionController.class);
 
@@ -34,19 +31,20 @@ public class TransactionController {
     private TransactionService transactionService;
 
     @GetMapping("/api/transactions")
-    public ResponseEntity<List<WalletTransaction>> getAllTransactions(@RequestHeader("Authorization") String jwt) throws Exception {
+    public ResponseEntity<List<WalletTransaction>> getAllTransactions(@RequestHeader("Authorization") String jwt)
+            throws Exception {
         logger.info("Fetching all transactions for user");
-        
+
         User user = userService.findUserProfileByJwt(jwt);
         Wallet wallet = walletService.getUserWallet(user);
 
         List<WalletTransaction> transactionList = transactionService.getTransactionsByWalletId(wallet);
-        
+
         // Sort by date descending (newest first)
         transactionList = transactionList.stream()
                 .sorted(Comparator.comparing(WalletTransaction::getDate).reversed())
                 .collect(Collectors.toList());
-        
+
         logger.info("Found {} transactions for user", transactionList.size());
         return new ResponseEntity<>(transactionList, HttpStatus.OK);
     }
