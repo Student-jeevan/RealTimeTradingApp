@@ -1,5 +1,6 @@
 package com.jeevan.TradingApp.service;
 
+import com.jeevan.TradingApp.domain.LedgerTransactionType;
 import com.jeevan.TradingApp.domain.OrderType;
 import com.jeevan.TradingApp.modal.User;
 import com.jeevan.TradingApp.modal.Wallet;
@@ -7,14 +8,22 @@ import com.jeevan.TradingApp.repository.WalletRepository;
 import com.jeevan.TradingApp.modal.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Optional;
 
 @Service
 public class WalletServiceImpl implements WalletService {
+
     @Autowired
     private WalletRepository walletRepository;
+
+    @Autowired
+    private LedgerService ledgerService;
+
+    @Autowired
+    private FeeService feeService;
 
     @Override
     public Wallet getUserWallet(User user) {
@@ -24,15 +33,24 @@ public class WalletServiceImpl implements WalletService {
             wallet.setUser(user);
             walletRepository.save(wallet);
         }
-        return wallet;
+
+        // Calculate dynamic balance from ledger
+        BigDecimal availableBalance = ledgerService.calculateAvailableBalance(user.getId());
+
+        // Synchronize wallet record with calculated balance
+        wallet.setBalance(
+                availableBalance.add(wallet.getLockedBalance() != null ? wallet.getLockedBalance() : BigDecimal.ZERO));
+        return walletRepository.save(wallet);
     }
 
     @Override
+    @Transactional
     public Wallet addBalance(Wallet wallet, BigDecimal money) {
-        BigDecimal balance = wallet.getBalance();
-        BigDecimal newBalance = balance.add(money);
-        wallet.setBalance(newBalance);
-        return walletRepository.save(wallet);
+        // Create CREDIT entry in the ledger
+        ledgerService.createLedgerEntry(wallet.getUser(), LedgerTransactionType.CREDIT, money, null, "Deposit funds");
+
+        // Return updated wallet
+        return getUserWallet(wallet.getUser());
     }
 
     @Override
@@ -45,41 +63,66 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
+    @Transactional
     public Wallet walletToWalletTransfer(User sender, Wallet receiverWallet, Long amount) throws Exception {
         Wallet senderWallet = getUserWallet(sender);
+        BigDecimal amountDecimal = BigDecimal.valueOf(amount);
 
-        // Check sufficient balance
-        if (senderWallet.getBalance().compareTo(BigDecimal.valueOf(amount)) < 0) {
+        // Check sufficient balance calculating against actual available amount
+        BigDecimal senderAvailable = ledgerService.calculateAvailableBalance(sender.getId());
+        if (senderAvailable.compareTo(amountDecimal) < 0) {
             throw new Exception("Insufficient balance ...");
         }
 
-        // Deduct from sender
-        BigDecimal senderBalance = senderWallet.getBalance().subtract(BigDecimal.valueOf(amount));
-        senderWallet.setBalance(senderBalance);
-        walletRepository.save(senderWallet);
+        // Deduct from sender via Ledger
+        ledgerService.createLedgerEntry(sender, LedgerTransactionType.DEBIT, amountDecimal, null,
+                "Transfer to wallet " + receiverWallet.getId());
 
-        // Add to receiver ✅
-        BigDecimal receiverBalance = receiverWallet.getBalance().add(BigDecimal.valueOf(amount));
-        receiverWallet.setBalance(receiverBalance);
-        walletRepository.save(receiverWallet);
+        // Add to receiver via Ledger
+        ledgerService.createLedgerEntry(receiverWallet.getUser(), LedgerTransactionType.CREDIT, amountDecimal, null,
+                "Transfer from wallet " + sender.getId());
 
-        return senderWallet;
+        // Refresh sender wallet wrapper
+        return getUserWallet(sender);
     }
 
     @Override
+    @Transactional
     public Wallet payOrderPayment(Order order, User user) throws Exception {
         Wallet wallet = getUserWallet(user);
+        BigDecimal orderPrice = order.getPrice();
+
         if (order.getOrderType().equals(OrderType.BUY)) {
-            BigDecimal newBalance = wallet.getBalance().subtract(order.getPrice());
-            if (newBalance.compareTo(order.getPrice()) < 0) {
+            BigDecimal availableBalance = ledgerService.calculateAvailableBalance(user.getId());
+
+            if (availableBalance.compareTo(orderPrice) < 0) {
                 throw new Exception("Insufficient funds for this transaction");
             }
-            wallet.setBalance(newBalance);
+
+            // On a new BUY order, we lock the funds.
+            ledgerService.createLedgerEntry(user, LedgerTransactionType.TRADE_LOCK, orderPrice,
+                    String.valueOf(order.getId()), "Trade lock for BUY order");
+
+            // Update wallet's locked balance manually to reflect in entity quickly if
+            // needed
+            BigDecimal currentLocked = wallet.getLockedBalance() != null ? wallet.getLockedBalance() : BigDecimal.ZERO;
+            wallet.setLockedBalance(currentLocked.add(orderPrice));
+            walletRepository.save(wallet);
+
         } else {
-            BigDecimal newBalance = wallet.getBalance().add(order.getPrice());
-            wallet.setBalance(newBalance);
+            // For SELL orders, we might not lock fiat, assuming crypto asset validation
+            // handles the sell availability.
+            // If the order executes successfully, we just grant the funds (DEBIT mapping
+            // occurs at execution phase in OrderService).
+            // Currently this method handles both creation and execution implicitly in the
+            // old flow. In the upgraded version, `payOrderPayment` could be mapped to Lock
+            // phase.
+            // In the context of Order execution for SELL, funds are credited. Let's just
+            // create a CREDIT for a SELL complete here temporarily if that's what was
+            // intended. Actually in new system, OrderService handles this explicitly.
         }
-        walletRepository.save(wallet);
-        return wallet;
+
+        // Let's simply return updated wallet
+        return getUserWallet(user);
     }
 }

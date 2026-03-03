@@ -19,6 +19,11 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useEffect } from "react";
 import { getUser } from './State/Auth/Action'
 import { Toaster } from 'sonner';
+
+// Import new components
+import WalletLedgerPage from './pages/Wallet/WalletLedgerPage'
+import OrderHistoryPage from './pages/Order/OrderHistoryPage'
+
 function App() {
   const auth = useSelector(state => state.auth);
   const dispatch = useDispatch();
@@ -38,6 +43,8 @@ function App() {
           <Route path='/portfolio' element={<Portfolio />} />
           <Route path='/activity' element={<Activity />} />
           <Route path='/wallet' element={<Wallet />} />
+          <Route path='/wallet/ledger' element={<WalletLedgerPage />} /> {/* New Route */}
+          <Route path='/orders' element={<OrderHistoryPage />} /> {/* New Route */}
           <Route path='/withdrawals' element={<Withdrawal />} />
           <Route path='/payment-details' element={<PaymentDetails />} />
           <Route path='/market/:id' element={<StockDetails />} />

@@ -20,6 +20,11 @@ public class GlobalControllerExceptionHandler {
         return new ResponseEntity<>("User not found: " + ex.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(RiskValidationException.class)
+    public ResponseEntity<String> handleRiskValidationException(RiskValidationException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleException(Exception ex) {
         return new ResponseEntity<>("Internal Server Error: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);

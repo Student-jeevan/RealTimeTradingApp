@@ -17,4 +17,10 @@ public class Wallet {
     private User user;
 
     private BigDecimal balance = BigDecimal.ZERO;
+
+    @Column(name = "locked_balance", precision = 18, scale = 8)
+    private BigDecimal lockedBalance = BigDecimal.ZERO;
+
+    @Version
+    private Long version;
 }

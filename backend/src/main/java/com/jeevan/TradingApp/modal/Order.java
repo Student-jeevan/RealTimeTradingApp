@@ -6,9 +6,10 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
 @Entity
 @Data
-@Table(name="orders")
+@Table(name = "orders")
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -22,12 +23,20 @@ public class Order {
     @Column(nullable = false)
     private BigDecimal price;
 
-    private LocalDateTime timestamp  = LocalDateTime.now();
+    private LocalDateTime timestamp = LocalDateTime.now();
 
     @Column(nullable = false)
     private OrderStatus status;
 
-    @OneToOne(mappedBy = "order" , cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
     private OrderItem orderItem;
 
+    @Column(name = "filled_quantity")
+    private Double filledQuantity = 0.0;
+
+    @Column(name = "remaining_quantity")
+    private Double remainingQuantity = 0.0;
+
+    @Version
+    private Long version;
 }

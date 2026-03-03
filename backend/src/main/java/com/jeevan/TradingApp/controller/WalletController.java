@@ -83,4 +83,15 @@ public class WalletController {
         }
         return new ResponseEntity<>(wallet, HttpStatus.ACCEPTED);
     }
+
+    @Autowired
+    private com.jeevan.TradingApp.service.LedgerService ledgerService;
+
+    @GetMapping("/api/wallet/ledger")
+    public ResponseEntity<java.util.List<WalletLedger>> getUserLedger(@RequestHeader("Authorization") String jwt)
+            throws Exception {
+        User user = userService.findUserProfileByJwt(jwt);
+        java.util.List<WalletLedger> ledger = ledgerService.getUserLedger(user.getId());
+        return new ResponseEntity<>(ledger, HttpStatus.OK);
+    }
 }

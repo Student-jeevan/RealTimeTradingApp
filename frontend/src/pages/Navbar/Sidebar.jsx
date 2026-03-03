@@ -6,18 +6,18 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { logout } from '@/State/Auth/Action';
 import { isAdmin } from '@/utils/roleUtils';
-import { 
-  BookmarkIcon, 
-  CreditCardIcon, 
-  HomeIcon, 
-  LandmarkIcon, 
+import {
+  BookmarkIcon,
+  CreditCardIcon,
+  HomeIcon,
+  LandmarkIcon,
   WalletIcon
 } from 'lucide-react';
-import { 
-  ActivityLogIcon, 
-  DashboardIcon, 
-  ExitIcon, 
-  PersonIcon 
+import {
+  ActivityLogIcon,
+  DashboardIcon,
+  ExitIcon,
+  PersonIcon
 } from '@radix-ui/react-icons';
 
 // Base menu items for all users
@@ -27,6 +27,8 @@ const baseMenu = [
   { name: "Watchlist", path: "/watchlist", icon: <BookmarkIcon className="h-6 w-6" /> },
   { name: "Activity", path: "/activity", icon: <ActivityLogIcon className="h-6 w-6" /> },
   { name: "Wallet", path: "/wallet", icon: <WalletIcon className="h-6 w-6" /> },
+  { name: "Wallet Ledger", path: "/wallet/ledger", icon: <BookmarkIcon className="h-6 w-6" /> },
+  { name: "Order History", path: "/orders", icon: <ActivityLogIcon className="h-6 w-6" /> },
   { name: "Payment Details", path: "/payment-details", icon: <LandmarkIcon className="h-6 w-6" /> },
   { name: "Withdrawal", path: "/withdrawals", icon: <CreditCardIcon className="h-6 w-6" /> },
   { name: "Profile", path: "/profile", icon: <PersonIcon className="h-6 w-6" /> },
@@ -60,7 +62,7 @@ const Sidebar = () => {
               variant="outline"
               className="flex items-center gap-5 py-6 w-full"
               onClick={() => {
-                if(item.name === "Logout"){
+                if (item.name === "Logout") {
                   handleLogout();
                 } else {
                   navigate(item.path);
