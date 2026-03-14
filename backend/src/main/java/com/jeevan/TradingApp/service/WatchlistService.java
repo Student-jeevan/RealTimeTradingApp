@@ -6,12 +6,12 @@ import com.jeevan.TradingApp.modal.Watchlist;
 
 public interface WatchlistService {
 
-    Watchlist findUserWatchlist(Long userId) throws Exception;
+    Watchlist findUserWatchlist(Long userId);
 
     Watchlist createWatchlist(User user);
 
-    Watchlist findById(Long Id) throws Exception;
+    Watchlist findById(Long Id);
 
-    Coin addItemToWatchlist(Coin coin , User user) throws Exception;
+    Coin addItemToWatchlist(Coin coin, User user);
 
 }

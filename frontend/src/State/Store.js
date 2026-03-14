@@ -7,6 +7,7 @@ import withdrawalReducer from './Withdrawal/Reducer';
 import orderReducer from './Order/Reducer';
 import assetReducer from './Asset/Reducer';
 import watchlistReducer from './Watchlist/Reducer';
+import alertReducer from './Alert/Reducer';
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -15,7 +16,8 @@ const rootReducer = combineReducers({
   withdrawal: withdrawalReducer,
   order: orderReducer,
   asset: assetReducer,
-  watchlist: watchlistReducer
+  watchlist: watchlistReducer,
+  alert: alertReducer,
 });
 
 export const store = legacy_createStore(rootReducer, applyMiddleware(thunk));

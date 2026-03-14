@@ -5,17 +5,17 @@ import com.jeevan.TradingApp.modal.Coin;
 import java.util.List;
 
 public interface CoinService {
-    List<Coin> getCoinList(int page) throws Exception;
+    List<Coin> getCoinList(int page);
 
-    String getMarketChart(String coinId , int days) throws Exception;
+    String getMarketChart(String coinId, int days);
 
-    String getCoinDetails(String coinId) throws Exception;
+    String getCoinDetails(String coinId);
 
-    Coin findById(String coinId) throws Exception;
+    Coin findById(String coinId);
 
-    String searchCoin(String keyword) throws Exception;
+    String searchCoin(String keyword);
 
-    String getTop50CoinsByMarketCapRank() throws Exception;
+    String getTop50CoinsByMarketCapRank();
 
-    String getTreadingCoins() throws Exception;
+    String getTreadingCoins();
 }

@@ -1,7 +1,6 @@
 package com.jeevan.TradingApp.controller;
 
 import com.jeevan.TradingApp.modal.*;
-import com.jeevan.TradingApp.response.PaymentResponse;
 import com.jeevan.TradingApp.service.OrderService;
 import com.jeevan.TradingApp.service.PaymentService;
 import com.jeevan.TradingApp.service.UserService;
@@ -28,20 +27,20 @@ public class WalletController {
     private PaymentService paymentService;
 
     @GetMapping("/api/wallet")
-    public ResponseEntity<Wallet> getUserWallet(@RequestHeader("Authorization") String jwt) throws Exception {
+    public ResponseEntity<Wallet> getUserWallet(@RequestHeader("Authorization") String jwt) {
         User user = userService.findUserProfileByJwt(jwt);
 
         Wallet wallet = walletService.getUserWallet(user);
+        System.out.println("Fetching wallet for user: " + user.getEmail() + ", balance: " + wallet.getBalance());
 
         return new ResponseEntity<>(wallet, HttpStatus.ACCEPTED);
-
     }
 
     @PutMapping("/api/wallet/{walletId}/transfer")
     public ResponseEntity<Wallet> walletToWalletTransfer(
             @RequestHeader("Authorization") String jwt,
             @PathVariable Long walletId,
-            @RequestBody WalletTransaction req) throws Exception {
+            @RequestBody WalletTransaction req) {
         User senderUser = userService.findUserProfileByJwt(jwt);
         Wallet receiverWallet = walletService.findWalletById(walletId);
         Wallet wallet = walletService.walletToWalletTransfer(senderUser, receiverWallet, req.getAmount());
@@ -52,7 +51,7 @@ public class WalletController {
     @PutMapping("/api/wallet/order/{orderId}/pay")
     public ResponseEntity<Wallet> payOrderPayment(
             @RequestHeader("Authorization") String jwt,
-            @PathVariable Long orderId) throws Exception {
+            @PathVariable Long orderId) {
         User user = userService.findUserProfileByJwt(jwt);
         Order order = orderService.getOrderById(orderId);
 
@@ -60,26 +59,41 @@ public class WalletController {
         return new ResponseEntity<>(wallet, HttpStatus.ACCEPTED);
     }
 
-    @PutMapping("/api/wallet/deposit")
+    @GetMapping("/api/wallet/deposit")
     public ResponseEntity<Wallet> addMoneyToWallet(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(name = "Authorization", required = false) String jwt,
             @RequestParam(name = "order_id") Long orderId,
-            @RequestParam(name = "payment_id") String paymentId) throws Exception {
-        User user = userService.findUserProfileByJwt(jwt);
+            @RequestParam(name = "payment_id") String paymentId) {
+
+        System.out.println("Deposit attempt: orderId=" + orderId + ", paymentId=" + paymentId);
+        PaymentOrder order = paymentService.getPaymentOrderById(orderId);
+        User user;
+
+        if (jwt != null) {
+            user = userService.findUserProfileByJwt(jwt);
+        } else {
+            user = order.getUser();
+        }
+        System.out.println("Processing deposit for user: " + user.getEmail() + ", current order status: "
+                + order.getPaymentOrderStatus());
+
+        // If it's already success, just return the wallet without adding balance again
+        if (order.getPaymentOrderStatus().equals(com.jeevan.TradingApp.domain.PaymentOrderStatus.SUCCESS)) {
+            System.out.println("Order already processed successfully. Returning wallet.");
+            Wallet wallet = walletService.getUserWallet(user);
+            return new ResponseEntity<>(wallet, HttpStatus.ACCEPTED);
+        }
+
+        Boolean status = paymentService.ProceedPaymentOrder(order, paymentId);
+        System.out.println("Payment verification status: " + status);
 
         Wallet wallet = walletService.getUserWallet(user);
 
-        PaymentOrder order = paymentService.getPaymentOrderById(orderId);
-
-        Boolean status = paymentService.ProceedPaymentOrder(order, paymentId);
-        if (wallet.getBalance() == null) {
-            wallet.setBalance(BigDecimal.valueOf(0));
-        }
         if (status) {
-            // Convert INR to USD (Assuming 1 USD = 83 INR)
             BigDecimal inrAmount = BigDecimal.valueOf(order.getAmount());
             BigDecimal usdAmount = inrAmount.divide(BigDecimal.valueOf(83), 2, java.math.RoundingMode.HALF_UP);
-            wallet = walletService.addBalance(wallet, usdAmount);
+            System.out.println("Adding balance: " + usdAmount + " USD (from " + inrAmount + " INR)");
+            wallet = walletService.addBalance(user, usdAmount);
         }
         return new ResponseEntity<>(wallet, HttpStatus.ACCEPTED);
     }
@@ -88,8 +102,7 @@ public class WalletController {
     private com.jeevan.TradingApp.service.LedgerService ledgerService;
 
     @GetMapping("/api/wallet/ledger")
-    public ResponseEntity<java.util.List<WalletLedger>> getUserLedger(@RequestHeader("Authorization") String jwt)
-            throws Exception {
+    public ResponseEntity<java.util.List<WalletLedger>> getUserLedger(@RequestHeader("Authorization") String jwt) {
         User user = userService.findUserProfileByJwt(jwt);
         java.util.List<WalletLedger> ledger = ledgerService.getUserLedger(user.getId());
         return new ResponseEntity<>(ledger, HttpStatus.OK);

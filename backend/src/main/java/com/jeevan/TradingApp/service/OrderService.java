@@ -11,11 +11,11 @@ import java.util.List;
 public interface OrderService {
     Order createOrder(User user, OrderItem orderItem, OrderType orderType);
 
-    Order getOrderById(Long orderId) throws Exception;
+    Order getOrderById(Long orderId);
 
     List<Order> getAllOrderUser(Long userId, OrderType orderType, String assetSymbol);
 
-    Order processOrder(Coin coin, double quantity, OrderType orderType, User user) throws Exception;
+    Order processOrder(Coin coin, double quantity, OrderType orderType, User user);
 
-    Order cancelOrder(Long orderId, User user) throws Exception;
+    Order cancelOrder(Long orderId, User user);
 }

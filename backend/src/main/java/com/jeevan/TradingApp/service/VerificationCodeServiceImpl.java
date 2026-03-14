@@ -5,18 +5,20 @@ import com.jeevan.TradingApp.modal.User;
 import com.jeevan.TradingApp.modal.VerificationCode;
 import com.jeevan.TradingApp.repository.VerificationCodeRepository;
 import com.jeevan.TradingApp.utils.OtpUtils;
+import com.jeevan.TradingApp.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
-public class VerificationCodeServiceImpl implements  VerificationCodeService{
+public class VerificationCodeServiceImpl implements VerificationCodeService {
 
     @Autowired
     private VerificationCodeRepository verificationCodeRepository;
+
     @Override
-    public VerificationCode sendVerificationCode(User user , VerificationType verificationType) {
+    public VerificationCode sendVerificationCode(User user, VerificationType verificationType) {
         VerificationCode verificationCode1 = new VerificationCode();
         verificationCode1.setOtp(OtpUtils.generateOTP());
         verificationCode1.setVerificationType(verificationType);
@@ -26,12 +28,12 @@ public class VerificationCodeServiceImpl implements  VerificationCodeService{
     }
 
     @Override
-    public VerificationCode getVerificationCodeById(Long Id) throws Exception {
+    public VerificationCode getVerificationCodeById(Long Id) {
         Optional<VerificationCode> verificationCode = verificationCodeRepository.findById(Id);
-        if(verificationCode.isPresent()){
+        if (verificationCode.isPresent()) {
             return verificationCode.get();
         }
-        throw new Exception("verification code not found");
+        throw new ResourceNotFoundException("Verification code not found");
     }
 
     @Override

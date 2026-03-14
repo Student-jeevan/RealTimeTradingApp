@@ -8,12 +8,14 @@ import lombok.Data;
 @Data
 public class VerificationCode {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String otp;
     @OneToOne
     private User user;
     private String email;
     private String mobile;
-    private VerificationType verificationType;
+
+    @Enumerated(EnumType.STRING)
+    private com.jeevan.TradingApp.domain.VerificationType verificationType;
 }

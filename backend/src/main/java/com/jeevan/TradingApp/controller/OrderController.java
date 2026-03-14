@@ -8,6 +8,7 @@ import com.jeevan.TradingApp.request.CreateOrderRequest;
 import com.jeevan.TradingApp.service.CoinService;
 import com.jeevan.TradingApp.service.OrderService;
 import com.jeevan.TradingApp.service.UserService;
+import com.jeevan.TradingApp.exception.UnauthorizedAccessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +32,7 @@ public class OrderController {
     // private WalletTransactionalservice walletTransactionalservice;
     @PostMapping("/pay")
     public ResponseEntity<Order> payOrderPayment(@RequestHeader("Authorization") String jwt,
-            @RequestBody CreateOrderRequest req) throws Exception {
+            @RequestBody CreateOrderRequest req) {
         User user = userService.findUserProfileByJwt(jwt);
         Coin coin = coinService.findById(req.getCoinId());
 
@@ -41,21 +42,20 @@ public class OrderController {
 
     @GetMapping("/{orderId}")
     public ResponseEntity<Order> getOrderById(@RequestHeader("Authorization") String jwtToken,
-            @PathVariable Long orderId) throws Exception {
+            @PathVariable Long orderId) {
         User user = userService.findUserProfileByJwt(jwtToken);
         Order order = orderService.getOrderById(orderId);
 
         if (order.getUser().getId().equals(user.getId())) {
             return ResponseEntity.ok(order);
         } else {
-            throw new Exception("you don't have access");
+            throw new UnauthorizedAccessException("you don't have access");
         }
     }
 
     @GetMapping()
     public ResponseEntity<List<Order>> getAllOrdersForUser(@RequestHeader("Authorization") String jwt,
-            @RequestParam(required = false) OrderType order_type, @RequestParam(required = false) String asset_symbol)
-            throws Exception {
+            @RequestParam(required = false) OrderType order_type, @RequestParam(required = false) String asset_symbol) {
         Long userId = userService.findUserProfileByJwt(jwt).getId();
 
         List<Order> userOrders = orderService.getAllOrderUser(userId, order_type, asset_symbol);
@@ -63,8 +63,7 @@ public class OrderController {
     }
 
     @PostMapping("/{orderId}/cancel")
-    public ResponseEntity<Order> cancelOrder(@RequestHeader("Authorization") String jwt, @PathVariable Long orderId)
-            throws Exception {
+    public ResponseEntity<Order> cancelOrder(@RequestHeader("Authorization") String jwt, @PathVariable Long orderId) {
         User user = userService.findUserProfileByJwt(jwt);
         Order order = orderService.cancelOrder(orderId, user);
         return ResponseEntity.ok(order);

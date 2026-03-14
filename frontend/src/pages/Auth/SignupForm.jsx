@@ -34,13 +34,6 @@ function SignupForm() {
         }
     });
 
-    useEffect(() => {
-        if (auth.error) {
-            toast.error(auth.error);
-        }
-    }, [auth.error]);
-
-
     const onSubmit = (data) => {
         dispatch(register(data)).then((success) => {
             if (success) setIsOtpSent(true);
@@ -85,12 +78,6 @@ function SignupForm() {
                             <InputOTPSlot index={5} />
                         </InputOTPGroup>
                     </InputOTP>
-
-                    {auth.error && (
-                        <div className="text-red-500 text-sm mt-2 text-center">
-                            {typeof auth.error === 'string' ? auth.error : "Invalid OTP"}
-                        </div>
-                    )}
 
                     <Button onClick={handleVerifyOtp} className='w-full py-5'>
                         Verify

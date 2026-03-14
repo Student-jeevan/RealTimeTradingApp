@@ -1,5 +1,7 @@
 package com.jeevan.TradingApp.service;
 
+import com.jeevan.TradingApp.exception.CustomException;
+
 import com.jeevan.TradingApp.domain.PaymentMethod;
 import com.jeevan.TradingApp.domain.PaymentOrderStatus;
 import com.jeevan.TradingApp.modal.PaymentOrder;
@@ -39,41 +41,54 @@ public class PaymentServiceImpl implements PaymentService {
         paymentOrder.setUser(user);
         paymentOrder.setAmount(amount);
         paymentOrder.setPaymentMethod(paymentMethod);
-        paymentOrder.setStatus(PaymentOrderStatus.PENDING);
+        paymentOrder.setPaymentOrderStatus(PaymentOrderStatus.PENDING);
 
         return paymentOrderRepository.save(paymentOrder);
     }
 
     @Override
-    public PaymentOrder getPaymentOrderById(Long id) throws Exception {
+    public PaymentOrder getPaymentOrderById(Long id) {
 
-        return paymentOrderRepository.findById(id).orElseThrow(() -> new Exception("payment order not found"));
+        return paymentOrderRepository.findById(id)
+                .orElseThrow(() -> new CustomException("payment order not found", "NOT_FOUND"));
     }
 
     @Override
-    public Boolean ProceedPaymentOrder(PaymentOrder paymentOrder, String paymentId) throws RazorpayException {
-        if (paymentOrder.getStatus() == null) {
-            paymentOrder.setStatus(PaymentOrderStatus.PENDING);
+    public Boolean ProceedPaymentOrder(PaymentOrder paymentOrder, String paymentId) {
+        if (paymentOrder.getPaymentOrderStatus() == null) {
+            paymentOrder.setPaymentOrderStatus(PaymentOrderStatus.PENDING);
         }
-        if (paymentOrder.getStatus().equals(PaymentOrderStatus.PENDING)) {
+        if (paymentOrder.getPaymentOrderStatus().equals(PaymentOrderStatus.PENDING)) {
             if (paymentOrder.getPaymentMethod().equals(PaymentMethod.RAZORPAY)) {
-                RazorpayClient razorpay = new RazorpayClient(apiKey, apiSecretKey);
-                Payment payment = razorpay.payments.fetch(paymentId);
+                RazorpayClient razorpay = null;
+                try {
+                    razorpay = new RazorpayClient(apiKey, apiSecretKey);
+                } catch (RazorpayException e) {
+                    throw new CustomException(e.getMessage(), "PAYMENT_SERVICE_ERROR");
+                }
+                Payment payment = null;
+                try {
+                    payment = razorpay.payments.fetch(paymentId);
+                } catch (RazorpayException e) {
+                    throw new CustomException(e.getMessage(), "PAYMENT_FETCH_ERROR");
+                }
 
                 Integer amount = payment.get("amount");
 
                 String status = payment.get("status");
-                if (status.equals("captured")) {
-                    paymentOrder.setStatus(PaymentOrderStatus.SUCCESS);
+                System.out.println("Razorpay status for " + paymentId + ": " + status);
+
+                if (status.equals("captured") || status.equals("authorized")) {
+                    paymentOrder.setPaymentOrderStatus(PaymentOrderStatus.SUCCESS);
                     paymentOrderRepository.save(paymentOrder);
                     return true;
                 } else {
-                    paymentOrder.setStatus(PaymentOrderStatus.FAILED);
+                    paymentOrder.setPaymentOrderStatus(PaymentOrderStatus.FAILED);
                     paymentOrderRepository.save(paymentOrder);
                     return false;
                 }
             }
-            paymentOrder.setStatus(PaymentOrderStatus.SUCCESS);
+            paymentOrder.setPaymentOrderStatus(PaymentOrderStatus.SUCCESS);
             paymentOrderRepository.save(paymentOrder);
             return true;
         }
@@ -81,7 +96,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public PaymentResponse createRazorpayPaymentLink(User user, Long amount, Long orderId) throws RazorpayException {
+    public PaymentResponse createRazorpayPaymentLink(User user, Long amount, Long orderId) {
         // Razorpay expects amount in paise (smallest currency unit), so multiply by 100
         Long amountInPaise = amount * 100;
         try {
@@ -112,12 +127,12 @@ public class PaymentServiceImpl implements PaymentService {
 
         } catch (RazorpayException e) {
             System.out.println("Error creating payment link : " + e.getMessage());
-            throw new RazorpayException(e.getMessage());
+            throw new CustomException(e.getMessage(), "PAYMENT_LINK_ERROR");
         }
     }
 
     @Override
-    public PaymentResponse createStripePaymentLink(User user, Long amount, Long orderId) throws StripeException {
+    public PaymentResponse createStripePaymentLink(User user, Long amount, Long orderId) {
         Stripe.apiKey = stripeSecretKey;
 
         SessionCreateParams params = SessionCreateParams.builder()
@@ -137,7 +152,12 @@ public class PaymentServiceImpl implements PaymentService {
                         .build())
                 .build();
 
-        Session session = Session.create(params);
+        Session session = null;
+        try {
+            session = Session.create(params);
+        } catch (StripeException e) {
+            throw new CustomException(e.getMessage(), "STRIPE_ERROR");
+        }
         PaymentResponse res = new PaymentResponse();
         res.setPayment_url(session.getUrl());
         return res;

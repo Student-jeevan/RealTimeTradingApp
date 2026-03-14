@@ -1,35 +1,47 @@
 import * as types from './ActionTypes';
 const initalState = {
-    order:null,
+    order: null,
     orders: [],
     loading: false,
     error: null,
 };
-const orderReducer = (state =  initalState, action)=>{
-    switch(action.type){
+const orderReducer = (state = initalState, action) => {
+    switch (action.type) {
         case types.PAY_ORDER_REQUEST:
         case types.GET_ORDER_REQUEST:
         case types.GET_ALL_ORDER_REQUEST:
             return {
-                ...state, 
+                ...state,
                 loading: true,
                 error: null,
             };
         case types.PAY_ORDER_SUCCESS:
         case types.GET_ORDER_SUCCESS:
             return {
-                ...state, 
+                ...state,
                 order: action.payload,
                 loading: false,
                 error: null,
             };
         case types.GET_ALL_ORDER_SUCCESS:
             return {
-                ...state , 
+                ...state,
                 orders: action.payload,
                 loading: false,
                 error: null,
             };
+        case types.WEBSOCKET_ORDER_UPDATE: {
+            const updated = action.payload;
+            const exists = state.orders.some((o) => o.id === updated.id);
+            const newOrders = exists
+                ? state.orders.map((o) => (o.id === updated.id ? updated : o))
+                : [updated, ...state.orders];
+            return {
+                ...state,
+                orders: newOrders,
+                order: state.order?.id === updated.id ? updated : state.order,
+            };
+        }
         case types.PAY_ORDER_FAILURE:
         case types.GET_ORDER_FAILURE:
         case types.GET_ALL_ORDER_FAILURE:
@@ -38,8 +50,8 @@ const orderReducer = (state =  initalState, action)=>{
                 loading: false,
                 error: action.error,
             };
-            default:
-                return state;
+        default:
+            return state;
     }
 };
 export default orderReducer

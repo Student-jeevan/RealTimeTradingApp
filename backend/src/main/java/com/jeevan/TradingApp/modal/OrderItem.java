@@ -8,7 +8,7 @@ import lombok.Data;
 @Entity
 public class OrderItem {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private double quantity;

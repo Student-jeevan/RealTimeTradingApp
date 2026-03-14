@@ -9,27 +9,40 @@ import java.time.LocalDateTime;
 
 @Entity
 @Data
-@Table(name = "orders")
+@Table(name = "orders", indexes = {
+        @Index(name = "idx_orders_coin", columnList = "coin_id"),
+        @Index(name = "idx_orders_price", columnList = "price"),
+        @Index(name = "idx_orders_status", columnList = "status")
+})
 public class Order {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne
     private User user;
 
+    @ManyToOne
+    @JoinColumn(name = "coin_id")
+    private Coin coin;
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private OrderType orderType;
+    private com.jeevan.TradingApp.domain.OrderType orderType;
 
     @Column(nullable = false)
     private BigDecimal price;
 
     private LocalDateTime timestamp = LocalDateTime.now();
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private OrderStatus status;
+    private com.jeevan.TradingApp.domain.OrderStatus status;
 
-    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private OrderItem orderItem;
+
+    @Column(name = "quantity")
+    private Double quantity = 0.0;
 
     @Column(name = "filled_quantity")
     private Double filledQuantity = 0.0;

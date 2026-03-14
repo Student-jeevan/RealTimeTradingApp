@@ -6,6 +6,8 @@ import com.jeevan.TradingApp.modal.Withdrawal;
 import com.jeevan.TradingApp.modal.Wallet;
 import com.jeevan.TradingApp.repository.WalletRepository;
 import com.jeevan.TradingApp.repository.WithdrawalRepository;
+import com.jeevan.TradingApp.exception.InsufficientBalanceException;
+import com.jeevan.TradingApp.exception.ResourceNotFoundException;
 import java.math.BigDecimal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,7 +33,7 @@ public class WithdrawalServiceImpl implements WithdrawalService {
 
         // Check for insufficient funds
         if (userWallet.getBalance().compareTo(BigDecimal.valueOf(amount)) < 0) {
-            throw new RuntimeException("Insufficient funds");
+            throw new InsufficientBalanceException("Wallet balance is insufficient to request this withdrawal");
         }
 
         // Deduct balance immediately to lock funds
@@ -47,10 +49,10 @@ public class WithdrawalServiceImpl implements WithdrawalService {
     }
 
     @Override
-    public Withdrawal proceedWithdrawal(Long withdrawalId, boolean accept) throws Exception {
+    public Withdrawal proceedWithdrawal(Long withdrawalId, boolean accept) {
         Optional<Withdrawal> withdrawal = withdrawalRepository.findById(withdrawalId);
         if (withdrawal.isEmpty()) {
-            throw new Exception("withdrawal not found");
+            throw new ResourceNotFoundException("Withdrawal request not found for id " + withdrawalId);
         }
         Withdrawal withdrawal1 = withdrawal.get();
         withdrawal1.setDate(LocalDateTime.now());

@@ -10,9 +10,11 @@ import java.time.LocalDateTime;
 @Entity
 public class Withdrawal {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long Id;
-    private WithdrawalStatus status;
+
+    @Enumerated(EnumType.STRING)
+    private com.jeevan.TradingApp.domain.WithdrawalStatus status;
     private Long amount;
 
     @ManyToOne

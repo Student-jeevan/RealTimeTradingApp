@@ -31,40 +31,33 @@ public class WithdrawalController {
     private TransactionService transactionService;
 
     @PostMapping("/api/withdrawal/{amount}")
-    public ResponseEntity<?> withdrawalRequest(@PathVariable Long amount, @RequestHeader("Authorization") String jwt)
-            throws Exception {
+    public ResponseEntity<?> withdrawalRequest(@PathVariable Long amount, @RequestHeader("Authorization") String jwt) {
         User user = userService.findUserProfileByJwt(jwt);
         Wallet userWallet = walletService.getUserWallet(user);
 
-        try {
-            Withdrawal withdrawal = withdrawalService.requestWithdrawal(amount, user);
+        Withdrawal withdrawal = withdrawalService.requestWithdrawal(amount, user);
 
-            WalletTransaction walletTransaction = transactionService.createTransaction(
-                    userWallet,
-                    WalletTransactionType.WITHDRAWAL, null, "bank account withdrawal", withdrawal.getAmount());
+        transactionService.createTransaction(
+                userWallet,
+                WalletTransactionType.WITHDRAWAL, null, "bank account withdrawal", withdrawal.getAmount());
 
-            return new ResponseEntity<>(withdrawal, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
+        return new ResponseEntity<>(withdrawal, HttpStatus.OK);
     }
 
     @PatchMapping("/api/admin/withdrawal/{id}/proceed/{accept}")
     public ResponseEntity<?> proceedWithdrawal(@PathVariable Long id, @PathVariable boolean accept,
-            @RequestHeader("Authorization") String jwt) throws Exception {
+            @RequestHeader("Authorization") String jwt) {
         User user = userService.findUserProfileByJwt(jwt);
         Withdrawal withdrawal = withdrawalService.proceedWithdrawal(id, accept);
-        Wallet userWallet = walletService.getUserWallet(user);
 
         if (!accept) {
-            walletService.addBalance(userWallet, java.math.BigDecimal.valueOf(withdrawal.getAmount()));
+            walletService.addBalance(user, java.math.BigDecimal.valueOf(withdrawal.getAmount()));
         }
         return new ResponseEntity<>(withdrawal, HttpStatus.OK);
     }
 
     @GetMapping("/api/withdrawal")
-    public ResponseEntity<List<Withdrawal>> getWithdrawalHistory(@RequestHeader("Authorization") String jwt)
-            throws Exception {
+    public ResponseEntity<List<Withdrawal>> getWithdrawalHistory(@RequestHeader("Authorization") String jwt) {
         User user = userService.findUserProfileByJwt(jwt);
 
         List<Withdrawal> withdrawal = withdrawalService.getUsersWithdrawalHistory(user);
@@ -72,8 +65,7 @@ public class WithdrawalController {
     }
 
     @GetMapping("/api/admin/withdrawal")
-    public ResponseEntity<List<Withdrawal>> getAllWithdrawalRequest(@RequestHeader("Authorization") String jwt)
-            throws Exception {
+    public ResponseEntity<List<Withdrawal>> getAllWithdrawalRequest(@RequestHeader("Authorization") String jwt) {
         User user = userService.findUserProfileByJwt(jwt);
         List<Withdrawal> withdrawal = withdrawalService.getAllWithdrawalRequest();
         return new ResponseEntity<>(withdrawal, HttpStatus.OK);

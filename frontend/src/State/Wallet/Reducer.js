@@ -25,6 +25,7 @@ const walletReducer = (state = initialState , action)=>{
                 error:null,
             };
         case types.GET_USER_WALLET_SUCCESS:
+        case types.DEPOSIT_MONEY_SUCCESS:
         case types.TRANSFER_MONEY_SUCCESS:
             return {
                 ...state,
@@ -39,7 +40,7 @@ const walletReducer = (state = initialState , action)=>{
             return{
                 ...state,
                 loading: false,
-                error: action.payload,
+                error: action.payload ?? action.error,
             };
         default:
             return state;

@@ -5,8 +5,11 @@ import com.jeevan.TradingApp.modal.User;
 import com.jeevan.TradingApp.modal.VerificationCode;
 
 public interface VerificationCodeService {
-    VerificationCode sendVerificationCode(User user , VerificationType verificationType);
-    VerificationCode getVerificationCodeById(Long Id) throws Exception;
+    VerificationCode sendVerificationCode(User user, VerificationType verificationType);
+
+    VerificationCode getVerificationCodeById(Long Id);
+
     VerificationCode getVerificationCodeByUser(Long userId);
+
     void deleteVerificationCodeById(VerificationCode verificationCode);
 }

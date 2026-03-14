@@ -14,6 +14,7 @@ import Portfolio from './pages/Portfolio/Portfolio'
 import Wallet from './pages/Wallet/Wallet'
 import Activity from './pages/Activity/Activity'
 import Auth from './pages/Auth/Auth'
+import PriceAlertsPage from './pages/Alerts/PriceAlertsPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import { useDispatch, useSelector } from 'react-redux'
 import { useEffect } from "react";
@@ -51,6 +52,7 @@ function App() {
           <Route path='/watchlist' element={<Watchlist />} />
           <Route path='/profile' element={<Profile />} />
           <Route path='/search' element={<SearchCoin />} />
+          <Route path='/alerts' element={<PriceAlertsPage />} />
           <Route path='*' element={<Notfound />} />
         </Routes>
       </div> :

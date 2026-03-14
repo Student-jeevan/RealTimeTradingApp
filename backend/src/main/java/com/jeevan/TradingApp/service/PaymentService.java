@@ -8,13 +8,13 @@ import com.razorpay.RazorpayException;
 import com.stripe.exception.StripeException;
 
 public interface PaymentService {
-    PaymentOrder createOrder(User user , Long amount , PaymentMethod paymentMethod);
+    PaymentOrder createOrder(User user, Long amount, PaymentMethod paymentMethod);
 
-    PaymentOrder getPaymentOrderById(Long id) throws Exception;
+    PaymentOrder getPaymentOrderById(Long id);
 
-    Boolean ProceedPaymentOrder(PaymentOrder paymentOrder , String paymentId) throws RazorpayException;
+    Boolean ProceedPaymentOrder(PaymentOrder paymentOrder, String paymentId);
 
-    PaymentResponse createRazorpayPaymentLink(User user , Long amount , Long orderId) throws RazorpayException;
+    PaymentResponse createRazorpayPaymentLink(User user, Long amount, Long orderId);
 
-    PaymentResponse createStripePaymentLink(User user , Long amount , Long orderId) throws StripeException;
+    PaymentResponse createStripePaymentLink(User user, Long amount, Long orderId);
 }

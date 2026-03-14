@@ -35,7 +35,7 @@ public class FeeServiceImpl implements FeeService {
 
     @Override
     @Transactional
-    public void deductFee(User user, BigDecimal amount, String referenceId, String description) throws Exception {
+    public void deductFee(User user, BigDecimal amount, String referenceId, String description) {
         BigDecimal fee = calculateFee(amount);
         if (fee.compareTo(BigDecimal.ZERO) > 0) {
             // 1. Add to Ledger

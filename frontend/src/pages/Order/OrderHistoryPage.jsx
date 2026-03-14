@@ -24,7 +24,10 @@ const OrderHistoryPage = () => {
     const fetchOrders = async () => {
         try {
             setLoading(true);
-            const res = await api.get("/api/orders");
+            const jwt = localStorage.getItem("jwt");
+            const res = await api.get("/api/orders", {
+                headers: jwt ? { Authorization: `Bearer ${jwt}` } : undefined,
+            });
             // Sort newest first
             const sorted = res.data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
             setOrders(sorted);
@@ -38,7 +41,12 @@ const OrderHistoryPage = () => {
 
     const cancelOrder = async (orderId) => {
         try {
-            await api.post(`/api/orders/${orderId}/cancel`);
+            const jwt = localStorage.getItem("jwt");
+            await api.post(
+                `/api/orders/${orderId}/cancel`,
+                {},
+                { headers: jwt ? { Authorization: `Bearer ${jwt}` } : undefined }
+            );
             toast.success("Order cancelled successfully");
             fetchOrders(); // Refresh table
         } catch (err) {
@@ -93,7 +101,7 @@ const OrderHistoryPage = () => {
                                     {format(new Date(order.timestamp), "dd MMM yyyy, HH:mm")}
                                 </TableCell>
                                 <TableCell className="font-semibold text-white">
-                                    {order.orderItem.coin.symbol.toUpperCase()} / USD
+                                    {(order.coin?.symbol || order.orderItem?.coin?.symbol || "—").toUpperCase()} / USD
                                 </TableCell>
                                 <TableCell>
                                     <span className={`font-medium ${order.orderType === 'BUY' ? 'text-green-400' : 'text-red-400'}`}>
@@ -104,7 +112,7 @@ const OrderHistoryPage = () => {
                                     ${order.price.toFixed(2)}
                                 </TableCell>
                                 <TableCell className="text-gray-300">
-                                    {order.orderItem.quantity}
+                                    {order.orderItem?.quantity ?? order.quantity ?? 0}
                                 </TableCell>
                                 <TableCell>
                                     {getStatusBadge(order.status)}

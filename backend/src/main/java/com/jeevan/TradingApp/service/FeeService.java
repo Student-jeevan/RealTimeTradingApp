@@ -7,5 +7,5 @@ import java.math.BigDecimal;
 public interface FeeService {
     BigDecimal calculateFee(BigDecimal tradeAmount);
 
-    void deductFee(User user, BigDecimal amount, String referenceId, String description) throws Exception;
+    void deductFee(User user, BigDecimal amount, String referenceId, String description);
 }

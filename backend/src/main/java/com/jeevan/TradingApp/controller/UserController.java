@@ -9,6 +9,7 @@ import com.jeevan.TradingApp.request.ResetPasswordRequest;
 import com.jeevan.TradingApp.response.ApiResponse;
 import com.jeevan.TradingApp.response.AuthResponse;
 import com.jeevan.TradingApp.service.*;
+import com.jeevan.TradingApp.exception.CustomException;
 import com.jeevan.TradingApp.utils.OtpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,14 +37,14 @@ public class UserController {
     private ForgotPasswordService forgotPasswordService;
 
     @GetMapping("/api/users/profile")
-    public ResponseEntity<User> getUserProfile(@RequestHeader("Authorization") String jwt) throws Exception {
+    public ResponseEntity<User> getUserProfile(@RequestHeader("Authorization") String jwt) {
         User user = userService.findUserProfileByJwt(jwt);
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
     @PostMapping("/api/users/verification/{verificationType}/send-otp")
     public ResponseEntity<String> sendVerificationOtp(@RequestHeader("Authorization") String jwt,
-            @PathVariable VerificationType verificationType) throws Exception {
+            @PathVariable VerificationType verificationType) {
         User user = userService.findUserProfileByJwt(jwt);
 
         VerificationCode verificationCode = verificationCodeService.getVerificationCodeByUser(user.getId());
@@ -51,16 +52,20 @@ public class UserController {
         if (verificationCode == null) {
             verificationCode = verificationCodeService.sendVerificationCode(user, verificationType);
         }
-        if (verificationType.equals(VerificationType.EMAIL)) {
-            emailService.sendVerificationOtpEmail(user.getEmail(), verificationCode.getOtp());
+        try {
+            if (verificationType.equals(VerificationType.EMAIL)) {
+                emailService.sendVerificationOtpEmail(user.getEmail(), verificationCode.getOtp());
+            }
+        } catch (Exception e) {
+            logger.error("Error sending OTP email: {}", e.getMessage());
+            throw new CustomException("Failed to send verification OTP", "EMAIL_ERROR");
         }
 
         return new ResponseEntity<>("verification otp sent successfully", HttpStatus.OK);
     }
 
     @PatchMapping("/api/users/two-factor/disable")
-    public ResponseEntity<User> disableTwoFactorAuthentication(@RequestHeader("Authorization") String jwt)
-            throws Exception {
+    public ResponseEntity<User> disableTwoFactorAuthentication(@RequestHeader("Authorization") String jwt) {
         User user = userService.findUserProfileByJwt(jwt);
         User updatedUser = userService.updateTwoFactorAuthStatus(user, false);
         return new ResponseEntity<>(updatedUser, HttpStatus.OK);
@@ -68,7 +73,7 @@ public class UserController {
 
     @PatchMapping("/api/users/enable-two-factor/verify-otp/{otp}")
     public ResponseEntity<User> enableTwoFactorAuthentication(@PathVariable String otp,
-            @RequestHeader("Authorization") String jwt) throws Exception {
+            @RequestHeader("Authorization") String jwt) {
         User user = userService.findUserProfileByJwt(jwt);
         VerificationCode verificationCode = verificationCodeService.getVerificationCodeByUser(user.getId());
 
@@ -82,12 +87,11 @@ public class UserController {
             verificationCodeService.deleteVerificationCodeById(verificationCode);
             return new ResponseEntity<>(updatedUser, HttpStatus.OK);
         }
-        throw new Exception("incorrect otp");
+        throw new CustomException("incorrect otp", "INVALID_OTP");
     }
 
     @PostMapping("/auth/users/reset-password/send-otp")
-    public ResponseEntity<AuthResponse> sendForgotPasswordOtp(@RequestBody ForgotPasswordTokenRequest request)
-            throws Exception {
+    public ResponseEntity<AuthResponse> sendForgotPasswordOtp(@RequestBody ForgotPasswordTokenRequest request) {
         logger.info("Received forgot password request for: {}", request.getSendTo());
         logger.info("Verification type: {}", request.getVerificationType());
 
@@ -109,9 +113,14 @@ public class UserController {
                         request.getSendTo());
                 logger.info("Updated existing forgot password token with ID: {} with new OTP", token.getId());
             }
-            if (request.getVerificationType().equals(VerificationType.EMAIL)) {
-                emailService.sendVerificationOtpEmail(user.getEmail(), token.getOtp());
-                logger.info("Verification OTP email sent to: {}", user.getEmail());
+            try {
+                if (request.getVerificationType().equals(VerificationType.EMAIL)) {
+                    emailService.sendVerificationOtpEmail(user.getEmail(), token.getOtp());
+                    logger.info("Verification OTP email sent to: {}", user.getEmail());
+                }
+            } catch (Exception e) {
+                logger.error("Error sending forgot password email: {}", e.getMessage());
+                throw new CustomException("Failed to send reset password email", "EMAIL_ERROR");
             }
             AuthResponse response = new AuthResponse();
             response.setSession(token.getId());
@@ -127,12 +136,12 @@ public class UserController {
     @PatchMapping("/auth/users/reset-password/verify-otp")
     public ResponseEntity<ApiResponse> resetPassword(
             @RequestParam String id,
-            @RequestBody ResetPasswordRequest req) throws Exception {
+            @RequestBody ResetPasswordRequest req) {
         logger.info("Received password reset request with token ID: {}", id);
         ForgotPasswordToken forgotPasswordToken = forgotPasswordService.findById(id);
         if (forgotPasswordToken == null) {
             logger.error("Forgot password token not found for ID: {}", id);
-            throw new Exception("Invalid or expired reset token");
+            throw new CustomException("Invalid or expired reset token", "INVALID_TOKEN");
         }
         boolean isVerified = forgotPasswordToken.getOtp().equals(req.getOtp());
         if (isVerified) {
@@ -146,6 +155,6 @@ public class UserController {
             return new ResponseEntity<>(apiResponse, HttpStatus.ACCEPTED);
         }
         logger.warn("Invalid OTP provided for token ID: {}", id);
-        throw new Exception("wrong otp");
+        throw new CustomException("wrong otp", "INVALID_OTP");
     }
 }

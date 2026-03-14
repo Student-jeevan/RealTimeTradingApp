@@ -20,7 +20,7 @@ public class RiskValidationServiceImpl implements RiskValidationService {
     // For now, implementing the pure business checks requested.
 
     @Override
-    public void validateTrade(User user, CreateOrderRequest request, double currentPrice) throws Exception {
+    public void validateTrade(User user, CreateOrderRequest request, double currentPrice) {
         BigDecimal tradeValue = BigDecimal.valueOf(request.getQuantity() * currentPrice);
 
         // 1. Minimum Trade Value (e.g., ₹100 or $1 depending on base currency. Assuming
@@ -34,6 +34,9 @@ public class RiskValidationServiceImpl implements RiskValidationService {
         // BUY)
         if (request.getOrderType() == OrderType.BUY) {
             BigDecimal availableBalance = ledgerService.calculateAvailableBalance(user.getId());
+            System.out.println("RiskValidation - userId=" + user.getId()
+                    + ", availableBalance(before trade)=" + availableBalance
+                    + ", requestedTradeValue=" + tradeValue);
             BigDecimal maxAllowedAllocation = availableBalance.multiply(BigDecimal.valueOf(0.8));
 
             if (tradeValue.compareTo(maxAllowedAllocation) > 0) {

@@ -33,16 +33,22 @@ public class LedgerServiceImpl implements LedgerService {
 
     @Override
     public BigDecimal calculateAvailableBalance(Long userId) {
+        System.out.println("Calculating available balance for userId: " + userId);
+
         BigDecimal additions = walletLedgerRepository.sumAmountByUserIdAndTransactionTypes(
                 userId, Arrays.asList(LedgerTransactionType.CREDIT, LedgerTransactionType.TRADE_RELEASE))
                 .orElse(BigDecimal.ZERO);
+        System.out.println("Additions: " + additions);
 
         BigDecimal subtractions = walletLedgerRepository.sumAmountByUserIdAndTransactionTypes(
                 userId,
                 Arrays.asList(LedgerTransactionType.DEBIT, LedgerTransactionType.TRADE_LOCK, LedgerTransactionType.FEE))
                 .orElse(BigDecimal.ZERO);
+        System.out.println("Subtractions: " + subtractions);
 
-        return additions.subtract(subtractions);
+        BigDecimal balance = additions.subtract(subtractions);
+        System.out.println("Calculated Available Balance: " + balance);
+        return balance;
     }
 
     @Override

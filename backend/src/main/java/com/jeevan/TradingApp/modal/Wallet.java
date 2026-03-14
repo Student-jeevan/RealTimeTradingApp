@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 public class Wallet {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToOne
@@ -23,4 +23,12 @@ public class Wallet {
 
     @Version
     private Long version;
+
+    /**
+     * Derived, non-persisted field exposed in API responses.
+     * availableBalance = balance - lockedBalance
+     */
+    @Transient
+    @com.fasterxml.jackson.annotation.JsonProperty("availableBalance")
+    private BigDecimal availableBalance;
 }

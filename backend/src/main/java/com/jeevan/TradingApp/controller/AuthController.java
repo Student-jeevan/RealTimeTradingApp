@@ -11,7 +11,6 @@ import com.jeevan.TradingApp.service.TwoFactorOtpService;
 import com.jeevan.TradingApp.service.WatchlistService;
 import com.jeevan.TradingApp.utils.OtpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.graphql.GraphQlProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -47,10 +46,11 @@ public class AuthController {
     private java.util.Map<String, String> signupOtps = new java.util.concurrent.ConcurrentHashMap<>();
 
     @PostMapping("/signup")
-    public ResponseEntity<AuthResponse> register(@RequestBody User user) throws Exception {
+    public ResponseEntity<AuthResponse> register(@RequestBody User user) {
         User EmailExist = userRepository.findByEmail(user.getEmail());
         if (EmailExist != null) {
-            throw new Exception("email already used by another account");
+            throw new com.jeevan.TradingApp.exception.CustomException("EMAIL_ALREADY_USED",
+                    "email already used by another account");
         }
 
         // Generate OTP
@@ -70,7 +70,12 @@ public class AuthController {
         signupOtps.put(user.getEmail(), otp);
 
         // Send OTP
-        emailService.sendVerificationOtpEmail(user.getEmail(), otp);
+        try {
+            emailService.sendVerificationOtpEmail(user.getEmail(), otp);
+        } catch (Exception e) {
+            throw new com.jeevan.TradingApp.exception.CustomException("EMAIL_SEND_ERROR",
+                    "Failed to send verification email");
+        }
 
         AuthResponse res = new AuthResponse();
         res.setStatus(true);
@@ -79,22 +84,22 @@ public class AuthController {
     }
 
     @PostMapping("/signup/verify")
-    public ResponseEntity<AuthResponse> verifySignup(@RequestBody com.jeevan.TradingApp.modal.VerificationCode req)
-            throws Exception {
+    public ResponseEntity<AuthResponse> verifySignup(@RequestBody com.jeevan.TradingApp.modal.VerificationCode req) {
         String email = req.getEmail();
         String otp = req.getOtp();
 
         if (email == null || otp == null) {
-            throw new Exception("Email and OTP are required");
+            throw new com.jeevan.TradingApp.exception.CustomException("INVALID_INPUT", "Email and OTP are required");
         }
 
         if (!signupOtps.containsKey(email) || !signupOtps.get(email).equals(otp)) {
-            throw new Exception("Invalid OTP");
+            throw new com.jeevan.TradingApp.exception.CustomException("INVALID_OTP", "Invalid OTP");
         }
 
         User user = pendingSignups.get(email);
         if (user == null) {
-            throw new Exception("User session expired, please signup again");
+            throw new com.jeevan.TradingApp.exception.CustomException("SESSION_EXPIRED",
+                    "User session expired, please signup again");
         }
 
         // Persist User
@@ -119,7 +124,7 @@ public class AuthController {
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<AuthResponse> login(@RequestBody User user) throws Exception {
+    public ResponseEntity<AuthResponse> login(@RequestBody User user) {
         String userName = user.getEmail();
         String password = user.getPassword();
         Authentication auth = authenticate(userName, password);
@@ -137,7 +142,12 @@ public class AuthController {
             twoFactorOtpService.deleteTwoFactorOtp(oldTwoFactorOTP);
         }
         TwoFactorOTP newTwoFactorOtp = twoFactorOtpService.createTwoFactorOtp(authUser, otp, jwt);
-        emailService.sendVerificationOtpEmail(userName, otp);
+        try {
+            emailService.sendVerificationOtpEmail(userName, otp);
+        } catch (Exception e) {
+            throw new com.jeevan.TradingApp.exception.CustomException("EMAIL_SEND_ERROR",
+                    "Failed to send verification email");
+        }
         res.setSession(newTwoFactorOtp.getId());
         return new ResponseEntity<>(res, HttpStatus.ACCEPTED);
     }
@@ -154,8 +164,7 @@ public class AuthController {
     }
 
     @PostMapping("/two-factor/otp/{otp}")
-    public ResponseEntity<AuthResponse> verifySigninOtp(@PathVariable String otp, @RequestParam String id)
-            throws Exception {
+    public ResponseEntity<AuthResponse> verifySigninOtp(@PathVariable String otp, @RequestParam String id) {
         TwoFactorOTP twoFactorOTP = twoFactorOtpService.findById(id);
         if (twoFactorOtpService.verifyTwoFactorOtp(twoFactorOTP, otp)) {
             AuthResponse res = new AuthResponse();
@@ -164,6 +173,6 @@ public class AuthController {
             res.setJwt(twoFactorOTP.getJwt());
             return new ResponseEntity<>(res, HttpStatus.OK);
         }
-        throw new Exception("invalid otp");
+        throw new com.jeevan.TradingApp.exception.CustomException("INVALID_OTP", "invalid otp");
     }
 }

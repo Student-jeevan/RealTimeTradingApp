@@ -6,6 +6,7 @@ import com.jeevan.TradingApp.modal.TwoFactorAuth;
 import com.jeevan.TradingApp.modal.TwoFactorOTP;
 import com.jeevan.TradingApp.modal.User;
 import com.jeevan.TradingApp.repository.UserRepository;
+import com.jeevan.TradingApp.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,29 +18,29 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
 
     @Override
-    public User findUserProfileByJwt(String jwt) throws Exception {
+    public User findUserProfileByJwt(String jwt) {
         String email = JwtProvider.getEmailFromToken(jwt);
         User user = userRepository.findByEmail(email);
         if (user == null) {
-            throw new Exception("user not found");
+            throw new ResourceNotFoundException("User not found for token subject " + email);
         }
         return user;
     }
 
     @Override
-    public User findUserByEmail(String email) throws Exception {
+    public User findUserByEmail(String email) {
         User user = userRepository.findByEmail(email);
         if (user == null) {
-            throw new Exception("user not found");
+            throw new ResourceNotFoundException("User not found with email " + email);
         }
         return user;
     }
 
     @Override
-    public User findUserById(Long userId) throws Exception {
+    public User findUserById(Long userId) {
         Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty()) {
-            throw new Exception("user not found");
+            throw new ResourceNotFoundException("User not found with id " + userId);
         }
         return user.get();
     }

@@ -4,5 +4,5 @@ import com.jeevan.TradingApp.modal.User;
 import com.jeevan.TradingApp.request.CreateOrderRequest;
 
 public interface RiskValidationService {
-    void validateTrade(User user, CreateOrderRequest request, double currentPrice) throws Exception;
+    void validateTrade(User user, CreateOrderRequest request, double currentPrice);
 }

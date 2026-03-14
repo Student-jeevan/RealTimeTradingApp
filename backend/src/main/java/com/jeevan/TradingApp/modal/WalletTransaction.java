@@ -11,13 +11,14 @@ import java.time.LocalDate;
 public class WalletTransaction {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
     private Wallet wallet;
 
-    private WalletTransactionType type;
+    @Enumerated(EnumType.STRING)
+    private com.jeevan.TradingApp.domain.WalletTransactionType type;
 
     private LocalDate date;
 

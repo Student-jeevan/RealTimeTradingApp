@@ -11,7 +11,8 @@ import {
   CreditCardIcon,
   HomeIcon,
   LandmarkIcon,
-  WalletIcon
+  WalletIcon,
+  Bell
 } from 'lucide-react';
 import {
   ActivityLogIcon,
@@ -31,6 +32,7 @@ const baseMenu = [
   { name: "Order History", path: "/orders", icon: <ActivityLogIcon className="h-6 w-6" /> },
   { name: "Payment Details", path: "/payment-details", icon: <LandmarkIcon className="h-6 w-6" /> },
   { name: "Withdrawal", path: "/withdrawals", icon: <CreditCardIcon className="h-6 w-6" /> },
+  { name: "Price Alerts", path: "/alerts", icon: <Bell className="h-6 w-6" /> },
   { name: "Profile", path: "/profile", icon: <PersonIcon className="h-6 w-6" /> },
 ];
 

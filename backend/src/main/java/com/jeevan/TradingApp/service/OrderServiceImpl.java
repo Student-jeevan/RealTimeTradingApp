@@ -1,12 +1,14 @@
 package com.jeevan.TradingApp.service;
 
-import com.jeevan.TradingApp.domain.LedgerTransactionType;
 import com.jeevan.TradingApp.domain.OrderStatus;
 import com.jeevan.TradingApp.domain.OrderType;
 import com.jeevan.TradingApp.request.CreateOrderRequest;
 import com.jeevan.TradingApp.modal.*;
 import com.jeevan.TradingApp.repository.OrderItemRepository;
 import com.jeevan.TradingApp.repository.OrderRepository;
+import com.jeevan.TradingApp.exception.OrderValidationException;
+import com.jeevan.TradingApp.exception.ResourceNotFoundException;
+import com.jeevan.TradingApp.exception.UnauthorizedAccessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,9 +24,6 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private WalletService walletService;
-
-    @Autowired
-    private LedgerService ledgerService;
 
     @Autowired
     private FeeService feeService;
@@ -51,9 +50,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order getOrderById(Long orderId) throws Exception {
+    public Order getOrderById(Long orderId) {
         return orderRepository.findById(orderId).orElseThrow(
-                () -> new Exception("order not found"));
+                () -> new ResourceNotFoundException("Order not found with id " + orderId));
     }
 
     @Override
@@ -74,9 +73,9 @@ public class OrderServiceImpl implements OrderService {
     private RiskValidationService riskValidationService;
 
     @Transactional
-    public Order buyAsset(Coin coin, double quantity, User user) throws Exception {
+    public Order buyAsset(Coin coin, double quantity, User user) {
         if (quantity <= 0) {
-            throw new Exception("quantity should be greater than zero");
+            throw new OrderValidationException("Trade quantity must be greater than zero");
         }
 
         double buyPrice = coin.getCurrentPrice();
@@ -108,10 +107,14 @@ public class OrderServiceImpl implements OrderService {
         feeService.deductFee(user, order.getPrice(), String.valueOf(order.getId()), "Fee for BUY order");
 
         // Release lock & Debit actual funds
-        ledgerService.createLedgerEntry(user, LedgerTransactionType.TRADE_RELEASE, order.getPrice(),
-                String.valueOf(order.getId()), "Release lock for execution");
-        ledgerService.createLedgerEntry(user, LedgerTransactionType.DEBIT, order.getPrice(),
-                String.valueOf(order.getId()), "Execute BUY order");
+        System.out.println(
+                "OrderServiceImpl: Wallet balance before debit: " + walletService.getUserWallet(user).getBalance());
+
+        walletService.releaseLock(user, order.getPrice(), String.valueOf(order.getId()), "Release lock for execution");
+        walletService.debit(user, order.getPrice(), String.valueOf(order.getId()), "Execute BUY order");
+
+        System.out.println(
+                "OrderServiceImpl: Wallet balance after debit: " + walletService.getUserWallet(user).getBalance());
 
         Order saveOrder = orderRepository.save(order);
 
@@ -126,18 +129,18 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Transactional
-    public Order sellAsset(Coin coin, double quantity, User user) throws Exception {
+    public Order sellAsset(Coin coin, double quantity, User user) {
         if (quantity <= 0) {
-            throw new Exception("Quantity should be greater than zero");
+            throw new OrderValidationException("Trade quantity must be greater than zero");
         }
 
         Asset assetToSell = assetService.findAssetByUserIdAndCoinId(user.getId(), coin.getId());
         if (assetToSell == null) {
-            throw new Exception("Asset not found");
+            throw new ResourceNotFoundException("Asset not found for this user and coin");
         }
 
         if (assetToSell.getQuantity() < quantity) {
-            throw new Exception("Insufficient quantity to sell");
+            throw new OrderValidationException("Insufficient asset quantity to sell");
         }
 
         double buyPrice = assetToSell.getBuyPrice();
@@ -163,9 +166,14 @@ public class OrderServiceImpl implements OrderService {
         order.setRemainingQuantity(0.0);
         order.setStatus(OrderStatus.FILLED);
 
-        // Credit funds to wallet ledger
-        ledgerService.createLedgerEntry(user, LedgerTransactionType.CREDIT, order.getPrice(),
-                String.valueOf(order.getId()), "Execute SELL order");
+        // Credit funds to wallet
+        System.out.println(
+                "OrderServiceImpl: Wallet balance before credit: " + walletService.getUserWallet(user).getBalance());
+
+        walletService.credit(user, order.getPrice(), String.valueOf(order.getId()), "Execute SELL order");
+
+        System.out.println(
+                "OrderServiceImpl: Wallet balance after credit: " + walletService.getUserWallet(user).getBalance());
 
         // Deduct Fee
         feeService.deductFee(user, order.getPrice(), String.valueOf(order.getId()), "Fee for SELL order");
@@ -183,34 +191,35 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public Order processOrder(Coin coin, double quantity, OrderType orderType, User user) throws Exception {
+    public Order processOrder(Coin coin, double quantity, OrderType orderType, User user) {
         if (orderType.equals(OrderType.BUY)) {
             return buyAsset(coin, quantity, user);
         } else if (orderType.equals(OrderType.SELL)) {
             return sellAsset(coin, quantity, user);
         }
-        throw new Exception("invalid order type");
+        throw new OrderValidationException("Invalid order type: " + orderType);
     }
 
     @Transactional
-    public Order cancelOrder(Long orderId, User user) throws Exception {
+    public Order cancelOrder(Long orderId, User user) {
         Order order = getOrderById(orderId);
 
         if (!order.getUser().getId().equals(user.getId())) {
-            throw new Exception("You can only cancel your own orders");
+            throw new UnauthorizedAccessException("You are not authorized to cancel this order");
         }
 
         if (order.getStatus() == OrderStatus.FILLED || order.getStatus() == OrderStatus.CANCELLED
                 || order.getStatus() == OrderStatus.REJECTED) {
-            throw new Exception("Order cannot be cancelled in current state: " + order.getStatus());
+            throw new OrderValidationException("Order cannot be cancelled in current state: " + order.getStatus());
         }
 
         if (order.getOrderType() == OrderType.BUY && order.getStatus() == OrderStatus.OPEN) {
             // Need to release locked funds
             BigDecimal unexecutedAmount = order.getPrice()
                     .multiply(BigDecimal.valueOf(order.getRemainingQuantity() / order.getOrderItem().getQuantity()));
-            ledgerService.createLedgerEntry(user, LedgerTransactionType.TRADE_RELEASE, unexecutedAmount,
-                    String.valueOf(order.getId()), "Release lock due to cancellation");
+
+            walletService.releaseLock(user, unexecutedAmount, String.valueOf(order.getId()),
+                    "Release lock due to cancellation");
         }
 
         order.setStatus(OrderStatus.CANCELLED);

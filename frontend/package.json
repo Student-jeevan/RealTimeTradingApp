@@ -19,6 +19,7 @@
     "@radix-ui/react-scroll-area": "^1.2.10",
     "@radix-ui/react-slot": "^1.2.4",
     "@reduxjs/toolkit": "^2.10.1",
+    "@stomp/stompjs": "^7.3.0",
     "@tailwindcss/vite": "^4.1.16",
     "apexcharts": "^5.3.5",
     "axios": "^1.13.2",

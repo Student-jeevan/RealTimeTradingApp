@@ -5,6 +5,7 @@ import com.jeevan.TradingApp.modal.User;
 import com.jeevan.TradingApp.modal.Watchlist;
 import com.jeevan.TradingApp.repository.WalletRepository;
 import com.jeevan.TradingApp.repository.WatchlistRepository;
+import com.jeevan.TradingApp.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -19,10 +20,10 @@ public class WatchlistServiceImpl implements WatchlistService {
 
     @Override
     @Cacheable(value = "userWatchlist", key = "#userId")
-    public Watchlist findUserWatchlist(Long userId) throws Exception {
+    public Watchlist findUserWatchlist(Long userId) {
         Watchlist watchlist = watchlistRepository.findByUserId(userId);
         if (watchlist == null) {
-            throw new Exception("watchlist not found");
+            throw new ResourceNotFoundException("Watchlist not found for user");
         }
         return watchlist;
     }
@@ -35,16 +36,16 @@ public class WatchlistServiceImpl implements WatchlistService {
     }
 
     @Override
-    public Watchlist findById(Long Id) throws Exception {
+    public Watchlist findById(Long Id) {
         Optional<Watchlist> watchlistOptional = watchlistRepository.findById(Id);
         if (watchlistOptional.isEmpty()) {
-            throw new Exception("Watchlist not found");
+            throw new ResourceNotFoundException("Watchlist not found for id " + Id);
         }
         return watchlistOptional.get();
     }
 
     @Override
-    public Coin addItemToWatchlist(Coin coin, User user) throws Exception {
+    public Coin addItemToWatchlist(Coin coin, User user) {
         Watchlist watchlist = findUserWatchlist(user.getId());
 
         if (watchlist.getCoins().contains(coin)) {

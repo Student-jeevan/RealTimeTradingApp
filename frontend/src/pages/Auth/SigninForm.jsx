@@ -72,12 +72,6 @@ function SigninForm() {
                         </InputOTPGroup>
                     </InputOTP>
 
-                    {auth.error && (
-                        <div className="text-red-500 text-sm mt-2 text-center">
-                            {typeof auth.error === 'string' ? auth.error : "Invalid OTP"}
-                        </div>
-                    )}
-
                     <Button onClick={handleVerifyOtp} className='w-full py-5'>
                         Verify
                     </Button>
@@ -119,11 +113,6 @@ function SigninForm() {
                                 </FormItem>
                             )}
                         />
-                        {auth.error && (
-                            <div className="text-red-500 text-sm mt-2 text-center">
-                                {auth.error}
-                            </div>
-                        )}
                         <Button type='submit' className='w-full py-5'>
                             Submit
                         </Button>
