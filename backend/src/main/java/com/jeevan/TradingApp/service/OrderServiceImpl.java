@@ -9,6 +9,8 @@ import com.jeevan.TradingApp.repository.OrderRepository;
 import com.jeevan.TradingApp.exception.OrderValidationException;
 import com.jeevan.TradingApp.exception.ResourceNotFoundException;
 import com.jeevan.TradingApp.exception.UnauthorizedAccessException;
+import com.jeevan.TradingApp.kafka.events.TradeEvent;
+import com.jeevan.TradingApp.kafka.producer.TradeEventProducer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +35,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private AssetService assetService;
+
+    @Autowired
+    private TradeEventProducer tradeEventProducer;
 
     @Override
     public Order createOrder(User user, OrderItem orderItem, OrderType orderType) {
@@ -125,6 +130,10 @@ public class OrderServiceImpl implements OrderService {
         } else {
             assetService.updateAsset(oldAsset.getId(), quantity);
         }
+
+        // --- Publish trade event to Kafka ---
+        publishTradeEvent(saveOrder, user, coin);
+
         return saveOrder;
     }
 
@@ -186,6 +195,9 @@ public class OrderServiceImpl implements OrderService {
             assetService.deleteAsset(updatedAsset.getId());
         }
 
+        // --- Publish trade event to Kafka ---
+        publishTradeEvent(savedOrder, user, coin);
+
         return savedOrder;
     }
 
@@ -224,5 +236,29 @@ public class OrderServiceImpl implements OrderService {
 
         order.setStatus(OrderStatus.CANCELLED);
         return orderRepository.save(order);
+    }
+
+    // ==================== Kafka Event Publishing ====================
+
+    private void publishTradeEvent(Order order, User user, Coin coin) {
+        try {
+            TradeEvent event = TradeEvent.builder()
+                    .eventId(java.util.UUID.randomUUID().toString())
+                    .timestamp(java.time.LocalDateTime.now())
+                    .userId(user.getId())
+                    .userEmail(user.getEmail())
+                    .orderId(order.getId())
+                    .orderType(order.getOrderType().name())
+                    .coinId(coin.getId())
+                    .coinSymbol(coin.getSymbol())
+                    .quantity(order.getOrderItem().getQuantity())
+                    .price(order.getPrice())
+                    .status(order.getStatus().name())
+                    .build();
+            tradeEventProducer.publish(event);
+        } catch (Exception e) {
+            // Log but don't fail the trade — event publishing is a side effect
+            System.err.println("[OrderService] Failed to publish trade event: " + e.getMessage());
+        }
     }
 }

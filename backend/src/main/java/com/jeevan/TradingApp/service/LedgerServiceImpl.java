@@ -4,6 +4,8 @@ import com.jeevan.TradingApp.domain.LedgerTransactionType;
 import com.jeevan.TradingApp.modal.User;
 import com.jeevan.TradingApp.modal.WalletLedger;
 import com.jeevan.TradingApp.repository.WalletLedgerRepository;
+import com.jeevan.TradingApp.kafka.events.TransactionEvent;
+import com.jeevan.TradingApp.kafka.producer.TransactionEventProducer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,9 @@ public class LedgerServiceImpl implements LedgerService {
     @Autowired
     private WalletLedgerRepository walletLedgerRepository;
 
+    @Autowired
+    private TransactionEventProducer transactionEventProducer;
+
     @Override
     @Transactional
     public WalletLedger createLedgerEntry(User user, LedgerTransactionType type, BigDecimal amount, String referenceId,
@@ -28,7 +33,25 @@ public class LedgerServiceImpl implements LedgerService {
         entry.setAmount(amount);
         entry.setReferenceId(referenceId);
         entry.setDescription(description);
-        return walletLedgerRepository.save(entry);
+        WalletLedger saved = walletLedgerRepository.save(entry);
+
+        // --- Publish transaction event to Kafka for audit ---
+        try {
+            TransactionEvent txnEvent = TransactionEvent.builder()
+                    .eventId(java.util.UUID.randomUUID().toString())
+                    .timestamp(java.time.LocalDateTime.now())
+                    .userId(user.getId())
+                    .transactionType(type.name())
+                    .amount(amount)
+                    .referenceId(referenceId)
+                    .description(description)
+                    .build();
+            transactionEventProducer.publish(txnEvent);
+        } catch (Exception e) {
+            System.err.println("[LedgerService] Failed to publish txn event: " + e.getMessage());
+        }
+
+        return saved;
     }
 
     @Override

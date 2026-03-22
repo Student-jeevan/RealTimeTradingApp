@@ -12,4 +12,6 @@ public interface PriceAlertRepository extends JpaRepository<PriceAlert, Long> {
     List<PriceAlert> findByUserIdAndTriggeredTrue(Long userId);
 
     List<PriceAlert> findAllByTriggeredFalse();
+
+    List<PriceAlert> findByCoinAndTriggeredFalse(String coin);
 }
