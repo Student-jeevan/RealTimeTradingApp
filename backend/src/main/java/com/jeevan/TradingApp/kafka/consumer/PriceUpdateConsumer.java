@@ -1,9 +1,9 @@
 package com.jeevan.TradingApp.kafka.consumer;
 
 import com.jeevan.TradingApp.kafka.events.PriceUpdateEvent;
-import com.jeevan.TradingApp.modal.Coin;
 import com.jeevan.TradingApp.modal.PriceAlert;
 import com.jeevan.TradingApp.repository.PriceAlertRepository;
+import com.jeevan.TradingApp.service.MarketDataCacheService;
 import com.jeevan.TradingApp.service.PriceAlertService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,13 +13,16 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Consumes price update events from Kafka.
- * - Pushes live prices to all connected WebSocket clients
- * - Checks user price alerts against the new price
+ * Consumes price update events from Kafka and performs 3 actions:
+ *
+ * 1. Updates Redis hot cache (2s TTL) for fast REST reads
+ * 2. Pushes live prices to WebSocket subscribers (per-coin topics)
+ * 3. Checks user price alerts against the new price
  */
 @Service
 public class PriceUpdateConsumer {
@@ -30,6 +33,9 @@ public class PriceUpdateConsumer {
     private SimpMessagingTemplate messagingTemplate;
 
     @Autowired
+    private MarketDataCacheService cacheService;
+
+    @Autowired
     private PriceAlertRepository priceAlertRepository;
 
     @Autowired
@@ -37,25 +43,43 @@ public class PriceUpdateConsumer {
 
     @KafkaListener(topics = "price-updates", groupId = "price-group")
     public void consume(PriceUpdateEvent event) {
-        log.debug("[PriceUpdateConsumer] Received price for {} @ ${}", event.getCoinId(), event.getCurrentPrice());
+        log.debug("[PriceUpdateConsumer] {} @ ${}", event.getCoinId(), event.getCurrentPrice());
 
         try {
-            // 1. Push to WebSocket for live frontend updates
-            Map<String, Object> priceData = Map.of(
-                    "coinId", event.getCoinId(),
-                    "symbol", event.getCoinSymbol(),
-                    "name", event.getCoinName(),
-                    "currentPrice", event.getCurrentPrice(),
-                    "priceChange24h", event.getPriceChange24h(),
-                    "priceChangePercentage24h", event.getPriceChangePercentage24h(),
-                    "marketCap", event.getMarketCap(),
-                    "totalVolume", event.getTotalVolume(),
-                    "timestamp", event.getTimestamp().toString()
-            );
+            // Build price data map (shared across cache, WS, and any future consumers)
+            Map<String, Object> priceData = new HashMap<>();
+            priceData.put("coinId", event.getCoinId());
+            priceData.put("symbol", event.getCoinSymbol());
+            priceData.put("name", event.getCoinName());
+            priceData.put("currentPrice", event.getCurrentPrice());
+            priceData.put("priceChange24h", event.getPriceChange24h());
+            priceData.put("priceChangePercentage24h", event.getPriceChangePercentage24h());
+            priceData.put("marketCap", event.getMarketCap());
+            priceData.put("totalVolume", event.getTotalVolume());
+            priceData.put("timestamp", event.getTimestamp().toString());
+
+            // 1. Update Redis hot cache (2-second TTL)
+            cacheService.setPrice(event.getCoinId(), priceData);
+
+            // 2. Push to WebSocket — per-coin topic for frontend subscriptions
             messagingTemplate.convertAndSend("/topic/prices/" + event.getCoinId(), priceData);
 
-            // 2. Check price alerts for this coin
+            // Also broadcast to a global prices topic for dashboard views
+            messagingTemplate.convertAndSend("/topic/prices", priceData);
+
+            // 3. Check price alerts for this coin
+            checkPriceAlerts(event);
+
+        } catch (Exception e) {
+            log.error("[PriceUpdateConsumer] Error for {}: {}", event.getCoinId(), e.getMessage(), e);
+        }
+    }
+
+    private void checkPriceAlerts(PriceUpdateEvent event) {
+        try {
             List<PriceAlert> activeAlerts = priceAlertRepository.findByCoinAndTriggeredFalse(event.getCoinId());
+            if (activeAlerts.isEmpty()) return;
+
             BigDecimal currentPrice = BigDecimal.valueOf(event.getCurrentPrice());
 
             for (PriceAlert alert : activeAlerts) {
@@ -66,12 +90,12 @@ public class PriceUpdateConsumer {
 
                 if (met) {
                     priceAlertService.triggerAlert(alert, currentPrice);
-                    log.info("[PriceUpdateConsumer] Triggered alert {} for coin {} @ ${}",
+                    log.info("[PriceUpdateConsumer] Alert {} triggered for {} @ ${}",
                             alert.getId(), event.getCoinId(), currentPrice);
                 }
             }
         } catch (Exception e) {
-            log.error("[PriceUpdateConsumer] Error processing price for {}: {}", event.getCoinId(), e.getMessage(), e);
+            log.warn("[PriceUpdateConsumer] Alert check failed for {}: {}", event.getCoinId(), e.getMessage());
         }
     }
 }

@@ -1,123 +1,64 @@
-import { Badge } from '@/components/ui/badge'
 import { Card, CardTitle, CardHeader, CardContent } from '@/components/ui/card'
-import {
-    Dialog, DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog'
-import { VerifiedIcon } from 'lucide-react'
+import { User, Mail, MapPin, Globe, Calendar, Shield } from 'lucide-react'
 import React from 'react'
-import { Button } from '@/components/ui/button'
-import AccountVerificationForm from './AccountVerificationForm'
-import { useSelector, useDispatch } from 'react-redux'
-import api from '@/config/api'
-import { getUser } from '@/State/Auth/Action'
+import { useSelector } from 'react-redux'
 
 function Profile() {
     const auth = useSelector(state => state.auth);
-    const dispatch = useDispatch();
 
-    const handleEnableTwoStepVerification = () => {
-        console.log('Two-step verification enabled');
-        dispatch(getUser(auth.user?.jwt));
-    }
+    const infoItems = [
+      { label: 'Email', value: auth.user?.email, icon: Mail },
+      { label: 'Full Name', value: auth.user?.fullName, icon: User },
+      { label: 'Date of Birth', value: '25/09/1919', icon: Calendar },
+      { label: 'Nationality', value: 'Indian', icon: Globe },
+      { label: 'Address', value: 'Tadkal', icon: MapPin },
+      { label: 'City', value: 'Hyderabad', icon: MapPin },
+      { label: 'Passcode', value: '••••••', icon: Shield },
+      { label: 'Country', value: 'India', icon: Globe },
+    ];
 
-    const handleDisableTwoStepVerification = async () => {
-        try {
-            await api.patch('/api/users/two-factor/disable');
-            dispatch(getUser(auth.user?.jwt));
-        } catch (error) {
-            console.error("Error disabling 2FA:", error);
-        }
-    }
     return (
-        <div className='flex flex-col items-center mb-5'>
-            <div className='pt-10 w-full lg:w-[60%]'>
-                <Card>
-                    <CardHeader className='pb-9'>
-                        <CardTitle>Your Information</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className='lg:flex gap-32'>
-                            <div className='space-y-7'>
-                                <div className='flex'>
-                                    <p className='w-[9rem]'>Email:</p>
-                                    <p className='text-gray-500'>{auth.user?.email}</p>
-                                </div>
-                                <div className='flex'>
-                                    <p className='w-[9rem]'>FullName:</p>
-                                    <p className='text-gray-500'>{auth.user?.fullName}</p>
-                                </div>
-                                <div className='flex'>
-                                    <p className='w-[9rem]'>Date of Birth:</p>
-                                    <p className='text-gray-500'>25/09/1919</p>
-                                </div>
-                                <div className='flex'>
-                                    <p className='w-[9rem]'>Nationality:</p>
-                                    <p className='text-gray-500'>Indian</p>
-                                </div>
-                            </div>
-                            <div className='space-y-7'>
-                                <div className='flex'>
-                                    <p className='w-[9rem]'>Adress:</p>
-                                    <p className='text-gray-500'>tadkal</p>
-                                </div>
-                                <div className='flex'>
-                                    <p className='w-[9rem]'>City:</p>
-                                    <p className='text-gray-500'>hyderabad</p>
-                                </div>
-                                <div className='flex'>
-                                    <p className='w-[9rem]'>Passcode:</p>
-                                    <p className='text-gray-500'>787444</p>
-                                </div>
-                                <div className='flex'>
-                                    <p className='w-[9rem]'>Country:</p>
-                                    <p className='text-gray-500'>Indian</p>
-                                </div>
-                            </div>
+        <div className='space-y-6'>
+            {/* Header */}
+            <div>
+              <h1 className='text-2xl font-bold'>Profile</h1>
+              <p className='text-sm text-muted-foreground mt-1'>Your account information</p>
+            </div>
+
+            {/* Profile Card */}
+            <div className='glass-card rounded-2xl overflow-hidden'>
+                {/* Profile banner */}
+                <div className='h-24 gradient-primary relative'>
+                  <div className='absolute -bottom-8 left-6'>
+                    <div className='w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-2xl font-bold text-white ring-4 ring-background shadow-xl'>
+                      {auth.user?.fullName?.[0]?.toUpperCase() || 'U'}
+                    </div>
+                  </div>
+                </div>
+
+                <div className='pt-12 px-6 pb-6'>
+                  <h2 className='text-lg font-bold'>{auth.user?.fullName || 'User'}</h2>
+                  <p className='text-sm text-muted-foreground'>{auth.user?.email}</p>
+                </div>
+
+                {/* Info grid */}
+                <div className='px-6 pb-6'>
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                    {infoItems.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <div key={item.label} className='flex items-center gap-3 p-3 rounded-xl bg-secondary/30'>
+                          <div className='p-2 rounded-lg bg-secondary/60'>
+                            <Icon className='w-4 h-4 text-muted-foreground' />
+                          </div>
+                          <div>
+                            <p className='text-[10px] text-muted-foreground uppercase tracking-wider'>{item.label}</p>
+                            <p className='text-sm font-medium'>{item.value || '—'}</p>
+                          </div>
                         </div>
-                    </CardContent>
-                </Card>
-                <div className='mt-6'>
-                    <Card className='w-full'>
-                        <CardHeader className='pb-7'>
-                            <div className='flex items-center gap-3'>
-                                <CardTitle>Two Step Verification</CardTitle>
-                                {auth.user?.twoFactorAuth?.enabled ? (
-                                    <Badge className='bg-green-500'>
-                                        <VerifiedIcon />
-                                        <span>Enabled</span>
-                                    </Badge>
-                                ) : (
-                                    <Badge className='bg-orange-500'>
-                                        <span>Disabled</span>
-                                    </Badge>
-                                )}
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div>
-                                {auth.user?.twoFactorAuth?.enabled ? (
-                                    <Button onClick={handleDisableTwoStepVerification}>Disable Two Step Verification</Button>
-                                ) : (
-                                    <Dialog>
-                                        <DialogTrigger>
-                                            <Button>Enable Two Step Verification</Button>
-                                        </DialogTrigger>
-                                        <DialogContent>
-                                            <DialogHeader>
-                                                <DialogTitle>Verify your account?</DialogTitle>
-                                            </DialogHeader>
-                                            <AccountVerificationForm handleSumbit={handleEnableTwoStepVerification} />
-                                        </DialogContent>
-                                    </Dialog>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
+                      );
+                    })}
+                  </div>
                 </div>
             </div>
         </div>

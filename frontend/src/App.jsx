@@ -1,5 +1,4 @@
 import './App.css'
-import Navbar from './pages/Navbar/Navbar'
 import Home from './pages/Home/Home'
 import LandingPage from './pages/Home/LandingPage'
 import { Route, Routes } from 'react-router-dom'
@@ -15,47 +14,50 @@ import Wallet from './pages/Wallet/Wallet'
 import Activity from './pages/Activity/Activity'
 import Auth from './pages/Auth/Auth'
 import PriceAlertsPage from './pages/Alerts/PriceAlertsPage'
-import ProtectedRoute from './components/ProtectedRoute'
 import { useDispatch, useSelector } from 'react-redux'
 import { useEffect } from "react";
 import { getUser } from './State/Auth/Action'
 import { Toaster } from 'sonner';
 
-// Import new components
 import WalletLedgerPage from './pages/Wallet/WalletLedgerPage'
 import OrderHistoryPage from './pages/Order/OrderHistoryPage'
+
+// New layout
+import AppLayout from './components/layout/AppLayout'
 
 function App() {
   const auth = useSelector(state => state.auth);
   const dispatch = useDispatch();
-  console.log("auth -- ", auth);
+
   useEffect(() => {
     const jwt = auth.jwt || localStorage.getItem("jwt");
     if (jwt) {
       dispatch(getUser(jwt));
     }
   }, [auth.jwt])
+
   return (
     <>
-      {auth.user ? <div>
-        <Navbar />
-        <Routes>
-          <Route path='/' element={<Home />} />
-          <Route path='/portfolio' element={<Portfolio />} />
-          <Route path='/activity' element={<Activity />} />
-          <Route path='/wallet' element={<Wallet />} />
-          <Route path='/wallet/ledger' element={<WalletLedgerPage />} /> {/* New Route */}
-          <Route path='/orders' element={<OrderHistoryPage />} /> {/* New Route */}
-          <Route path='/withdrawals' element={<Withdrawal />} />
-          <Route path='/payment-details' element={<PaymentDetails />} />
-          <Route path='/market/:id' element={<StockDetails />} />
-          <Route path='/watchlist' element={<Watchlist />} />
-          <Route path='/profile' element={<Profile />} />
-          <Route path='/search' element={<SearchCoin />} />
-          <Route path='/alerts' element={<PriceAlertsPage />} />
-          <Route path='*' element={<Notfound />} />
-        </Routes>
-      </div> :
+      {auth.user ? (
+        <AppLayout>
+          <Routes>
+            <Route path='/' element={<Home />} />
+            <Route path='/portfolio' element={<Portfolio />} />
+            <Route path='/activity' element={<Activity />} />
+            <Route path='/wallet' element={<Wallet />} />
+            <Route path='/wallet/ledger' element={<WalletLedgerPage />} />
+            <Route path='/orders' element={<OrderHistoryPage />} />
+            <Route path='/withdrawals' element={<Withdrawal />} />
+            <Route path='/payment-details' element={<PaymentDetails />} />
+            <Route path='/market/:id' element={<StockDetails />} />
+            <Route path='/watchlist' element={<Watchlist />} />
+            <Route path='/profile' element={<Profile />} />
+            <Route path='/search' element={<SearchCoin />} />
+            <Route path='/alerts' element={<PriceAlertsPage />} />
+            <Route path='*' element={<Notfound />} />
+          </Routes>
+        </AppLayout>
+      ) : (
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/signin" element={<Auth />} />
@@ -63,8 +65,8 @@ function App() {
           <Route path="/forgot-password" element={<Auth />} />
           <Route path="*" element={<LandingPage />} />
         </Routes>
-      }
-      <Toaster />
+      )}
+      <Toaster richColors position="top-right" />
     </>
   )
 }

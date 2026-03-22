@@ -8,20 +8,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jeevan.TradingApp.modal.Coin;
 import com.jeevan.TradingApp.repository.CoinRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
+/**
+ * Coin service — refactored to read live prices from Redis cache first.
+ *
+ * - getCoinList() → reads from MarketDataCacheService (sub-second data)
+ * - getCoinDetails() → still calls CoinGecko for full metadata (cached separately)
+ * - findById() → DB lookup (for trade execution, needs the Coin entity)
+ */
 @Service
 public class CoinServiceImpl implements CoinService {
     @Autowired
@@ -30,9 +34,46 @@ public class CoinServiceImpl implements CoinService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private MarketDataCacheService cacheService;
+
+    /**
+     * Returns coin list from Redis hot cache first.
+     * Falls back to CoinGecko REST if cache is empty (cold start).
+     */
     @Override
-    @Cacheable(value = "coins", key = "#page")
     public List<Coin> getCoinList(int page) {
+        // Try Redis cache first (sub-second freshness)
+        List<Map<String, Object>> cachedPrices = cacheService.getAllPrices();
+        if (!cachedPrices.isEmpty()) {
+            // Map cached data back to Coin entities from DB (enriched with full metadata)
+            List<Coin> coins = new ArrayList<>();
+            for (Map<String, Object> cached : cachedPrices) {
+                String coinId = cached.get("coinId").toString();
+                Optional<Coin> dbCoin = coinRepository.findById(coinId);
+                if (dbCoin.isPresent()) {
+                    Coin coin = dbCoin.get();
+                    // Override price with real-time cached price
+                    coin.setCurrentPrice(((Number) cached.get("currentPrice")).doubleValue());
+                    coins.add(coin);
+                }
+            }
+            if (!coins.isEmpty()) {
+                // Sort by market cap rank (ascending) and paginate
+                coins.sort(Comparator.comparingInt(Coin::getMarketCapRank));
+                int start = (page - 1) * 10;
+                int end = Math.min(start + 10, coins.size());
+                if (start < coins.size()) {
+                    return coins.subList(start, end);
+                }
+            }
+        }
+
+        // Fallback: direct CoinGecko call (only during cold start)
+        return fetchCoinListFromCoinGecko(page);
+    }
+
+    private List<Coin> fetchCoinListFromCoinGecko(int page) {
         String url = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&per_page=10&page=" + page;
         RestTemplate restTemplate = new RestTemplate();
         try {
@@ -51,7 +92,6 @@ public class CoinServiceImpl implements CoinService {
     }
 
     @Override
-    @Cacheable(value = "marketChart", key = "#coinId + '_' + #days")
     public String getMarketChart(String coinId, int days) {
         String url = "https://api.coingecko.com/api/v3/coins/" + coinId + "/market_chart?vs_currency=usd&days=" + days;
         RestTemplate restTemplate = new RestTemplate();
@@ -66,7 +106,6 @@ public class CoinServiceImpl implements CoinService {
     }
 
     @Override
-    @Cacheable(value = "coinDetails", key = "#coinId")
     public String getCoinDetails(String coinId) {
         String url = "https://api.coingecko.com/api/v3/coins/" + coinId;
         RestTemplate restTemplate = new RestTemplate();
