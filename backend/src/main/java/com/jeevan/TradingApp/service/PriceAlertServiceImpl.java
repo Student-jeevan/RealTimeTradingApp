@@ -58,7 +58,6 @@ public class PriceAlertServiceImpl implements PriceAlertService {
         }
         alertRepository.deleteById(alertId);
     }
-
     @Override
     public void triggerAlert(PriceAlert alert, BigDecimal currentPrice) {
         alert.setTriggered(true);

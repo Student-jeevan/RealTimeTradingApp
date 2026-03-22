@@ -41,7 +41,6 @@ public class AppConfig {
                 cfg.setExposedHeaders(Arrays.asList("Authorization"));
                 cfg.setAllowCredentials(true);
                 cfg.setMaxAge(3600L);
-
                 org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
                 source.registerCorsConfiguration("/**", cfg);
                 return source;
