@@ -11,6 +11,7 @@ import com.jeevan.TradingApp.exception.ResourceNotFoundException;
 import java.math.BigDecimal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.jeevan.TradingApp.exception.CustomException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,8 +28,15 @@ public class WithdrawalServiceImpl implements WithdrawalService {
     @Autowired
     private WithdrawalRepository withdrawalRepository;
 
+    @Autowired
+    private PaymentDetailsService paymentDetailsService;
+
     @Override
     public Withdrawal requestWithdrawal(Long amount, User user) {
+        if (paymentDetailsService.getUsersPaymentDetails(user) == null) {
+            throw new CustomException("Please add payment details first before requesting withdrawal.", "PAYMENT_DETAILS_MISSING");
+        }
+
         Wallet userWallet = walletService.getUserWallet(user);
 
         // Check for insufficient funds

@@ -21,10 +21,11 @@ public class CoinController {
     private ObjectMapper objectMapper;
 
     @GetMapping
-    ResponseEntity<List<Coin>> getCoinList(@RequestParam(required = false, name = "page") int page) {
-        List<Coin> coin = coinService.getCoinList(page);
+    public ResponseEntity<org.springframework.data.domain.Page<Coin>> getCoinList(
+            @RequestParam(required = false, name = "page", defaultValue = "1") int page,
+            @RequestParam(required = false, name = "size", defaultValue = "10") int size) {
+        org.springframework.data.domain.Page<Coin> coin = coinService.getCoinList(page, size);
         return new ResponseEntity<>(coin, HttpStatus.ACCEPTED);
-
     }
 
     @GetMapping("/{coinId}/chart")
@@ -41,15 +42,9 @@ public class CoinController {
     }
 
     @GetMapping("/search")
-    ResponseEntity<JsonNode> searchCoin(@RequestParam("q") String keyword) {
-        String coin = coinService.searchCoin(keyword);
-        JsonNode jsonNode = null;
-        try {
-            jsonNode = objectMapper.readTree(coin);
-        } catch (Exception e) {
-            throw new com.jeevan.TradingApp.exception.CustomException("Error parsing search results", "JSON_ERROR");
-        }
-        return ResponseEntity.ok(jsonNode);
+    public ResponseEntity<List<Coin>> searchCoin(@RequestParam("q") String keyword) {
+        List<Coin> coins = coinService.searchCoin(keyword);
+        return ResponseEntity.ok(coins);
     }
 
     @GetMapping("/top50")

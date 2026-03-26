@@ -28,7 +28,7 @@ import api, { API_BASE_URL } from "@/config/api";
 export const getCoinList = (page) => async (dispatch) => {
     dispatch({ type: FETCH_COIN_LIST_REQUEST })
     try {
-        const { data } = await api.get(`/coins?page=${page}`)
+        const { data } = await api.get(`/coins?page=${page}&size=10`)
         console.log("coin list", data);
         dispatch({ type: FETCH_COIN_LIST_SUCCESS, payload: data });
     }

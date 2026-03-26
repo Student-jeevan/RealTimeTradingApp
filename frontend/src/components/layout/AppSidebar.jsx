@@ -30,6 +30,7 @@ const navGroups = [
     items: [
       { name: 'Dashboard', path: '/', icon: HomeIcon },
       { name: 'Portfolio', path: '/portfolio', icon: DashboardIcon },
+      { name: 'Analytics', path: '/analytics', icon: BarChart3 },
       { name: 'Watchlist', path: '/watchlist', icon: BookmarkIcon },
     ],
   },

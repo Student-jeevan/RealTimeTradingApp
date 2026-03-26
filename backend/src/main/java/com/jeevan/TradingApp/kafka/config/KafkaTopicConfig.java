@@ -43,4 +43,12 @@ public class KafkaTopicConfig {
                 .replicas(1)
                 .build();
     }
+
+    @Bean
+    public NewTopic analyticsEventsTopic() {
+        return TopicBuilder.name(KafkaConfig.TOPIC_ANALYTICS_EVENTS)
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
 }

@@ -4,8 +4,10 @@ import com.jeevan.TradingApp.modal.Coin;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+
 public interface CoinService {
-    List<Coin> getCoinList(int page);
+    Page<Coin> getCoinList(int page, int size);
 
     String getMarketChart(String coinId, int days);
 
@@ -13,7 +15,7 @@ public interface CoinService {
 
     Coin findById(String coinId);
 
-    String searchCoin(String keyword);
+    java.util.List<Coin> searchCoin(String keyword);
 
     String getTop50CoinsByMarketCapRank();
 

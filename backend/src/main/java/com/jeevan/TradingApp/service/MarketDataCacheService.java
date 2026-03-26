@@ -25,7 +25,7 @@ public class MarketDataCacheService {
     private static final Logger log = LoggerFactory.getLogger(MarketDataCacheService.class);
 
     private static final String KEY_PREFIX = "market:price:";
-    private static final Duration PRICE_TTL = Duration.ofSeconds(2);
+    private static final Duration PRICE_TTL = Duration.ofMinutes(5);
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;

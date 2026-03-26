@@ -33,6 +33,10 @@ function Withdrawal() {
     };
 
     const handleSubmit = () => {
+        if (!withdrawal.paymentDetails?.accountNumber) {
+            toast.error("Please add payment details first before requesting withdrawal.");
+            return;
+        }
         if (wallet.userWallet?.balance < Number(amount)) {
             // Ideally use toast here, but relying on backend error message prop logic for display if implemented, 
             // but user requested "Show error message...". 

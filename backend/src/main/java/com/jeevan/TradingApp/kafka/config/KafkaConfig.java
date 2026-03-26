@@ -23,6 +23,7 @@ public class KafkaConfig {
     public static final String TOPIC_PRICE_UPDATES = "price-updates";
     public static final String TOPIC_NOTIFICATION_EVENTS = "notification-events";
     public static final String TOPIC_TRANSACTION_EVENTS = "transaction-events";
+    public static final String TOPIC_ANALYTICS_EVENTS = "analytics-events";
 
     @Value("${spring.kafka.bootstrap-servers:localhost:29092}")
     private String bootstrapServers;

@@ -77,7 +77,7 @@ const coinReducer  = (state = initalState, action)=>{
         case SEARCH_COIN_SUCCESS:
             return {
                 ...state,
-                searchCoinList: action.payload.coins,
+                searchCoinList: Array.isArray(action.payload) ? action.payload : action.payload.coins,
                 loading: false,
                 error:null,
             };

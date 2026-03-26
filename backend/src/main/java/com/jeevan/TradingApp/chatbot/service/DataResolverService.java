@@ -143,12 +143,10 @@ public class DataResolverService {
             // If still no coin found, try search
             if (coin == null && detectedCrypto != null) {
                 try {
-                    String searchResult = coinService.searchCoin(detectedCrypto);
-                    JsonNode searchJson = objectMapper.readTree(searchResult);
-                    JsonNode coinsArray = searchJson.get("coins");
-                    if (coinsArray != null && coinsArray.isArray() && coinsArray.size() > 0) {
-                        JsonNode firstCoin = coinsArray.get(0);
-                        String foundCoinId = firstCoin.get("id").asText();
+                    List<Coin> searchResult = coinService.searchCoin(detectedCrypto);
+                    if (searchResult != null && !searchResult.isEmpty()) {
+                        Coin firstCoin = searchResult.get(0);
+                        String foundCoinId = firstCoin.getId();
                         // Fetch and save coin details
                         coinService.getCoinDetails(foundCoinId);
                         coin = coinService.findById(foundCoinId);

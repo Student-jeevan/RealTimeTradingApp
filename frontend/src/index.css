@@ -1,40 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
 @layer base {
   :root {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 217 33% 8%;
+    --background: 222 47% 11%;      /* #0f172a */
+    --foreground: 210 40% 98%;      /* #f8fafc */
+    --card: 215 28% 17%;            /* #1f2937 */
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 215 28% 17%;
     --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
+    --primary: 217 91% 60%;         /* default primary */
+    --primary-foreground: 222 47% 11%;
+    --secondary: 217 33% 17%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
+    --muted: 215 28% 22%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 215 28% 22%;
     --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --border: 215 28% 22%;
+    --input: 215 28% 22%;
+    --ring: 217 91% 60%;
     --radius: 0.75rem;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-bg: 222 47% 6%;
-    --sidebar-hover: 217 33% 12%;
+    --sidebar-bg: 222 47% 11%;
+    --sidebar-hover: 215 28% 17%;
     --sidebar-active: 217 91% 60%;
-    --navbar-bg: 222 47% 5.5%;
+    --navbar-bg: 222 47% 11%;
     --gradient-start: 217 91% 60%;
     --gradient-end: 263 70% 50%;
   }
