@@ -33,6 +33,10 @@ public class AnalyticsService {
     private static final Logger log = LoggerFactory.getLogger(AnalyticsService.class);
     private static final String PRICE_CACHE_KEY = "analytics:prices";
 
+    // Redis key pattern for per-user portfolio cache (5-second TTL)
+    private static final String PORTFOLIO_CACHE_PREFIX = "user:%d:portfolio";
+    private static final long PORTFOLIO_CACHE_TTL_SECONDS = 5;
+
     @Autowired private UserAnalyticsRepository userAnalyticsRepo;
     @Autowired private TradeAnalyticsRepository tradeAnalyticsRepo;
     @Autowired private PortfolioSnapshotRepository snapshotRepo;
@@ -118,6 +122,9 @@ public class AnalyticsService {
         tradeAnalyticsRepo.save(trade);
         userAnalyticsRepo.save(analytics);
 
+        // FIX: Invalidate Redis cache after trade so next GET reflects new state
+        evictPortfolioCache(event.getUserId());
+
         log.info("[Analytics] Processed trade for user={} coin={} type={} pnl={}",
                 event.getUserId(), event.getCoinSymbol(), event.getOrderType(), profitLoss);
     }
@@ -190,12 +197,24 @@ public class AnalyticsService {
 
         userAnalyticsRepo.save(analytics);
 
-        // Take daily snapshot
-        takePortfolioSnapshot(userId, portfolioValue, analytics.getTotalInvested());
+        // FIX: Only take snapshot once per day — not on every price tick.
+        // Previously called unconditionally, causing a DB write per price update per user.
+        if (!snapshotRepo.findByUserIdAndSnapshotDate(userId, LocalDate.now()).isPresent()) {
+            takePortfolioSnapshot(userId, portfolioValue, analytics.getTotalInvested());
+        }
+
+        // Update Redis cache with fresh values (5s TTL)
+        PortfolioMetricsDto metrics = buildPortfolioMetrics(analytics);
+        try {
+            String cacheKey = String.format(PORTFOLIO_CACHE_PREFIX, userId);
+            redisTemplate.opsForValue().set(cacheKey, metrics,
+                    PORTFOLIO_CACHE_TTL_SECONDS, java.util.concurrent.TimeUnit.SECONDS);
+        } catch (Exception e) {
+            log.warn("[Analytics] Failed to update Redis cache for user {}: {}", userId, e.getMessage());
+        }
 
         // Push via WebSocket
         try {
-            PortfolioMetricsDto metrics = buildPortfolioMetrics(analytics);
             messagingTemplate.convertAndSendToUser(
                     userId.toString(),
                     "/queue/analytics",
@@ -211,11 +230,30 @@ public class AnalyticsService {
 
     /**
      * GET /api/analytics/portfolio
+     *
+     * FIX: Reads from Redis cache (5s TTL) before hitting DB.
+     * Cache is invalidated on trade events so new trades appear immediately.
+     * On cache miss, recomputes and writes back to Redis.
      */
     public PortfolioMetricsDto getPortfolioMetrics(Long userId) {
+        String cacheKey = String.format(PORTFOLIO_CACHE_PREFIX, userId);
+
+        // 1. Try cache first
+        try {
+            Object cached = redisTemplate.opsForValue().get(cacheKey);
+            if (cached instanceof PortfolioMetricsDto dto) {
+                log.debug("[Analytics] CACHE HIT for portfolio userId={}", userId);
+                return dto;
+            }
+        } catch (Exception e) {
+            log.warn("[Analytics] Redis cache read failed for userId={}: {}", userId, e.getMessage());
+        }
+
+        log.debug("[Analytics] CACHE MISS for portfolio userId={}, recomputing", userId);
+
+        // 2. Cache miss — load from DB and recompute
         UserAnalytics analytics = getOrCreateUserAnalytics(userId);
 
-        // Recompute unrealized PnL with latest prices
         Map<String, Double> prices = getCurrentPrices();
         if (!prices.isEmpty()) {
             BigDecimal portfolioValue = pnlCalculator.calculatePortfolioValue(userId, prices);
@@ -224,7 +262,17 @@ public class AnalyticsService {
             analytics.setUnrealizedPnl(unrealizedPnl);
         }
 
-        return buildPortfolioMetrics(analytics);
+        PortfolioMetricsDto result = buildPortfolioMetrics(analytics);
+
+        // 3. Write back to cache
+        try {
+            redisTemplate.opsForValue().set(cacheKey, result,
+                    PORTFOLIO_CACHE_TTL_SECONDS, java.util.concurrent.TimeUnit.SECONDS);
+        } catch (Exception e) {
+            log.warn("[Analytics] Redis cache write failed for userId={}: {}", userId, e.getMessage());
+        }
+
+        return result;
     }
 
     /**
@@ -387,6 +435,20 @@ public class AnalyticsService {
      */
     public void updatePrice(String coinId, double price) {
         latestPrices.put(coinId, price);
+    }
+
+    /**
+     * Evict the per-user portfolio metrics cache from Redis.
+     * Called after a trade is processed so the next GET reflects fresh data.
+     */
+    private void evictPortfolioCache(Long userId) {
+        try {
+            String cacheKey = String.format(PORTFOLIO_CACHE_PREFIX, userId);
+            redisTemplate.delete(cacheKey);
+            log.debug("[Analytics] Evicted portfolio cache for userId={}", userId);
+        } catch (Exception e) {
+            log.warn("[Analytics] Cache eviction failed for userId={}: {}", userId, e.getMessage());
+        }
     }
 
     /**

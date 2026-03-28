@@ -56,23 +56,6 @@ services:
     networks:
       - trading-network
 
-  mysql_db:
-    image: mysql:8.0
-    container_name: crypto_db
-    restart: always
-    ports:
-      - "3308:3306"
-    env_file:
-      - ./mysql/.env
-    volumes:
-      - mysql_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - trading-network
 
   backend:
     build:
@@ -91,12 +74,12 @@ services:
       - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/gcp.json
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     depends_on:
-      mysql_db:
-        condition: service_healthy
       redis:
         condition: service_started
       kafka:
         condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - trading-network
 
@@ -128,6 +111,3 @@ services:
 networks:
   trading-network:
     driver: bridge
-
-volumes:
-  mysql_data:

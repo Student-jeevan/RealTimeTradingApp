@@ -9,5 +9,7 @@ public class AuthResponse {
     private String message;
     private boolean isTwoFactorAuthEnabled;
     private String session;
+    private String deviceId;
 
 }
+

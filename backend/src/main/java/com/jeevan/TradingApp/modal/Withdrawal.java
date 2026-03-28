@@ -9,12 +9,14 @@ import java.time.LocalDateTime;
 @Data
 @Entity
 public class Withdrawal {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long Id;
 
     @Enumerated(EnumType.STRING)
-    private com.jeevan.TradingApp.domain.WithdrawalStatus status;
+    private WithdrawalStatus status;
+
     private Long amount;
 
     @ManyToOne
@@ -22,4 +24,9 @@ public class Withdrawal {
 
     private LocalDateTime date = LocalDateTime.now();
 
+    /** Timestamp when admin approved or rejected this request. */
+    private LocalDateTime approvedAt;
+
+    /** Email/name of the admin who acted on this request. */
+    private String approvedBy;
 }

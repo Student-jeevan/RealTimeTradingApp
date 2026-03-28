@@ -17,6 +17,8 @@ public class User {
     private String password;
     @Embedded
     private TwoFactorAuth twoFactorAuth = new TwoFactorAuth();
+    private boolean isVerified = false;
+
     @Enumerated(EnumType.STRING)
     private com.jeevan.TradingApp.domain.USER_ROLE role = com.jeevan.TradingApp.domain.USER_ROLE.ROLE_CUSTOMER;
 

@@ -103,7 +103,7 @@ export const paymentHandler = ({ jwt, amount, paymentMethod }) => async (dispatc
 };
 
 export const transferMoney = ({ jwt, walletId, reqData }) => {
-    async (dispatch) => {
+    return async (dispatch) => {
         dispatch({ type: types.TRANSFER_MONEY_REQUEST });
         try {
             const response = await api.put(`/api/wallet/${walletId}/transfer`, reqData, {
@@ -125,5 +125,6 @@ export const transferMoney = ({ jwt, walletId, reqData }) => {
         }
     }
 };
+
 
 

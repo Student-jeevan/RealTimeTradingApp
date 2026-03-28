@@ -36,32 +36,52 @@ export const withdrawalRequest = ({ amount, jwt }) => async dispatch => {
   }
 };
 
-/* ADMIN APPROVE / REJECT */
-export const proceedWithdrawal = ({ id, jwt, accept }) => async dispatch => {
+/* ADMIN APPROVE */
+export const approveWithdrawal = ({ id, jwt }) => async dispatch => {
   dispatch({ type: WITHDRAWAL_PROCEED_REQUEST });
-
   try {
-    const response = await api.patch(
-      `/api/admin/withdrawal/${id}/proceed/${accept}`,
+    const response = await api.post(
+      `/admin/withdrawals/${id}/approve`,
       null,
       { headers: { Authorization: `Bearer ${jwt}` } }
     );
-
-    // 🔥 FORCE STATUS CHANGE ON FRONTEND
     dispatch({
       type: WITHDRAWAL_PROCEED_SUCCESS,
-      payload: {
-        ...response.data,
-        status: accept ? "SUCCESS" : "DECLINE"
-      }
+      payload: { ...response.data.withdrawal, status: 'SUCCESS' }
     });
-
   } catch (error) {
     dispatch({
       type: WITHDRAWAL_PROCEED_FAILURE,
       payload: error.response?.data?.message || error.message
     });
   }
+};
+
+/* ADMIN REJECT */
+export const rejectWithdrawal = ({ id, jwt }) => async dispatch => {
+  dispatch({ type: WITHDRAWAL_PROCEED_REQUEST });
+  try {
+    const response = await api.post(
+      `/admin/withdrawals/${id}/reject`,
+      null,
+      { headers: { Authorization: `Bearer ${jwt}` } }
+    );
+    dispatch({
+      type: WITHDRAWAL_PROCEED_SUCCESS,
+      payload: { ...response.data.withdrawal, status: 'DECLINE' }
+    });
+  } catch (error) {
+    dispatch({
+      type: WITHDRAWAL_PROCEED_FAILURE,
+      payload: error.response?.data?.message || error.message
+    });
+  }
+};
+
+/* LEGACY: admin approve/reject via old endpoint */
+export const proceedWithdrawal = ({ id, jwt, accept }) => async dispatch => {
+  if (accept) return dispatch(approveWithdrawal({ id, jwt }));
+  return dispatch(rejectWithdrawal({ id, jwt }));
 };
 
 
@@ -89,19 +109,12 @@ export const getWithdrawalHistory = jwt => async dispatch => {
 export const getAllWithdrawalRequest = jwt => async dispatch => {
   dispatch({ type: GET_WITHDRAWAL_REQUEST_REQUEST });
   try {
-    const res = await api.get("/api/admin/withdrawal", {
+    const res = await api.get("/admin/withdrawals", {
       headers: { Authorization: `Bearer ${jwt}` }
     });
-
-    dispatch({
-      type: GET_WITHDRAWAL_REQUEST_SUCCESS,
-      payload: res.data
-    });
+    dispatch({ type: GET_WITHDRAWAL_REQUEST_SUCCESS, payload: res.data });
   } catch (err) {
-    dispatch({
-      type: GET_WITHDRAWAL_REQUEST_FAILURE,
-      payload: err.message
-    });
+    dispatch({ type: GET_WITHDRAWAL_REQUEST_FAILURE, payload: err.message });
   }
 };
 

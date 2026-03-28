@@ -11,6 +11,18 @@ import axios from "axios";
 import { API_BASE_URL as baseURL } from "../../config/api";
 import { toast } from 'sonner';
 
+// ========================
+// Device ID helper
+// ========================
+const getOrCreateDeviceId = () => {
+  let deviceId = localStorage.getItem("deviceId");
+  if (!deviceId) {
+    deviceId = crypto.randomUUID();
+    localStorage.setItem("deviceId", deviceId);
+  }
+  return deviceId;
+};
+
 /**
  * Extracts a user-friendly error message from an axios error object.
  */
@@ -22,6 +34,10 @@ const extractErrorMessage = (error) => {
   }
   return error.message || "An unexpected network error occurred.";
 };
+
+// ========================
+// SIGNUP
+// ========================
 
 export const register = (userData) => async (dispatch) => {
   dispatch({ type: REGISTER_REQUEST });
@@ -57,15 +73,33 @@ export const verifySignupOtp = (data) => async (dispatch) => {
   }
 }
 
+// ========================
+// LOGIN (with deviceId)
+// ========================
+
 export const login = (userData, navigate) => async (dispatch) => {
   dispatch({ type: LOGIN_REQUEST });
   try {
-    const response = await axios.post(`${baseURL}/auth/signin`, userData);
+    const deviceId = getOrCreateDeviceId();
+    const response = await axios.post(`${baseURL}/auth/signin`, {
+      ...userData,
+      deviceId,
+    });
+
     if (response.data.twoFactorAuthEnabled) {
-      dispatch({ type: LOGIN_TWO_STEP_SUCCESS, payload: response.data.session });
-      toast.info("Two-factor authentication required. Please check your email.");
+      // New device → OTP required
+      dispatch({
+        type: LOGIN_TWO_STEP_SUCCESS,
+        payload: {
+          sessionId: response.data.session,
+          sessionEmail: response.data.session, // backend returns email as session
+        }
+      });
+      toast.info("New device detected. OTP sent to your email.");
       return;
     }
+
+    // Trusted device → direct JWT
     dispatch({ type: LOGIN_SUCCESS, payload: response.data.jwt });
     localStorage.setItem("jwt", response.data.jwt);
     await dispatch(getUser(response.data.jwt));
@@ -78,14 +112,24 @@ export const login = (userData, navigate) => async (dispatch) => {
   }
 };
 
+// ========================
+// VERIFY LOGIN OTP (new device → trust it)
+// ========================
+
 export const verifyLoginOtp = (data, navigate) => async (dispatch) => {
   dispatch({ type: LOGIN_TWO_STEP_REQUEST });
   try {
-    const response = await axios.post(`${baseURL}/auth/two-factor/otp/${data.otp}?id=${data.sessionId}`);
+    const deviceId = getOrCreateDeviceId();
+    const response = await axios.post(`${baseURL}/auth/login/verify-otp`, {
+      email: data.email,
+      otp: data.otp,
+      deviceId,
+    });
+
     dispatch({ type: LOGIN_SUCCESS, payload: response.data.jwt });
     localStorage.setItem("jwt", response.data.jwt);
     await dispatch(getUser(response.data.jwt));
-    toast.success("Login successful!");
+    toast.success("Login successful! Device trusted.");
     if (navigate) navigate("/");
   } catch (error) {
     const errorMsg = extractErrorMessage(error);
@@ -93,6 +137,24 @@ export const verifyLoginOtp = (data, navigate) => async (dispatch) => {
     toast.error(errorMsg);
   }
 };
+
+// ========================
+// RESEND OTP
+// ========================
+
+export const resendOtp = (email) => async (dispatch) => {
+  try {
+    await axios.post(`${baseURL}/auth/resend-otp`, { email });
+    toast.success("OTP resent to your email.");
+  } catch (error) {
+    const errorMsg = extractErrorMessage(error);
+    toast.error(errorMsg);
+  }
+};
+
+// ========================
+// GET USER / LOGOUT / CLEAR ERROR
+// ========================
 
 export const getUser = (jwt) => async (dispatch) => {
   dispatch({ type: GET_USER_REQUEST });
@@ -107,7 +169,6 @@ export const getUser = (jwt) => async (dispatch) => {
   } catch (error) {
     const errorMsg = extractErrorMessage(error);
     dispatch({ type: GET_USER_FAILURE, payload: errorMsg });
-    // Soft error, don't necessarily toast for background user fetch failures unless unauthorized
     if (error.response?.status === 401) {
       toast.error("Session expired. Please login again.");
       dispatch(logout());
@@ -116,7 +177,8 @@ export const getUser = (jwt) => async (dispatch) => {
 };
 
 export const logout = (navigate) => (dispatch) => {
-  localStorage.clear();
+  localStorage.removeItem("jwt");
+  // Keep deviceId so returned logins remain trusted
   dispatch({ type: LOGOUT });
   toast.success("Logged out successfully");
   if (navigate) navigate("/signin");

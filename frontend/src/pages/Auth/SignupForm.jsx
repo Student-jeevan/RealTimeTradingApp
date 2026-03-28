@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/input-otp"
 import { Button } from '@/components/ui/button'
 import { useDispatch, useSelector } from 'react-redux'
-import { register, verifySignupOtp } from '@/State/Auth/Action'
+import { register, verifySignupOtp, resendOtp } from '@/State/Auth/Action'
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
@@ -25,6 +25,7 @@ function SignupForm() {
     const { auth } = useSelector(store => store);
     const [isOtpSent, setIsOtpSent] = useState(false);
     const [otp, setOtp] = useState("");
+    const [resendCooldown, setResendCooldown] = useState(0);
 
     const form = useForm({
         defaultValues: {
@@ -34,25 +35,39 @@ function SignupForm() {
         }
     });
 
+    // Trigger 30s cooldown when OTP screen appears
+    useEffect(() => {
+        if (isOtpSent) {
+            setResendCooldown(30);
+        }
+    }, [isOtpSent]);
+
+    useEffect(() => {
+        if (resendCooldown <= 0) return;
+        const timer = setTimeout(() => setResendCooldown(c => c - 1), 1000);
+        return () => clearTimeout(timer);
+    }, [resendCooldown]);
+
     const onSubmit = (data) => {
         dispatch(register(data)).then((success) => {
             if (success) setIsOtpSent(true);
         });
-        console.log(data);
     }
 
     const handleVerifyOtp = () => {
+        if (otp.length !== 6) {
+            toast.error("Please enter the 6-digit OTP");
+            return;
+        }
         dispatch(verifySignupOtp({ email: form.getValues("email"), otp })).then((success) => {
-            // If verifySignupOtp returns true, navigation is handled there or here. 
-            // In Action.js I updated verifySignupOtp to return true on success.
-            // Action.js: dispatch(LOGIN_SUCCESS...) -> updates auth.user.
-            // App.jsx redirects if auth.user is present.
-            // But let's check action.js again: "if (navigate) navigate("/");" logic was in login. in verifySignupOtp I didn't pass navigate, but I can.
-            // Let's pass navigate just in case, or rely on App.jsx state change.
-            // Actually, I didn't pass navigate in my previous Action.js edit. 
-            // Let's rely on the promise return.
             if (success) navigate("/");
         });
+    }
+
+    const handleResendOtp = () => {
+        if (resendCooldown > 0) return;
+        dispatch(resendOtp(form.getValues("email")));
+        setResendCooldown(30);
     }
 
     return (
@@ -63,7 +78,10 @@ function SignupForm() {
 
             {isOtpSent ? (
                 <div className="flex flex-col items-center gap-4">
-                    <p className="text-sm text-gray-400">Enter the OTP sent to {form.getValues("email")}</p>
+                    <p className="text-sm text-gray-400 text-center">
+                        Enter the OTP sent to <strong>{form.getValues("email")}</strong>
+                    </p>
+
                     <InputOTP
                         maxLength={6}
                         value={otp}
@@ -79,11 +97,27 @@ function SignupForm() {
                         </InputOTPGroup>
                     </InputOTP>
 
-                    <Button onClick={handleVerifyOtp} className='w-full py-5'>
-                        Verify
+                    <Button
+                        onClick={handleVerifyOtp}
+                        className='w-full py-5'
+                        disabled={auth.loading || otp.length < 6}
+                    >
+                        {auth.loading ? "Verifying..." : "Verify"}
                     </Button>
+
+                    <Button
+                        variant="ghost"
+                        onClick={handleResendOtp}
+                        disabled={resendCooldown > 0}
+                        className="text-sm"
+                    >
+                        {resendCooldown > 0
+                            ? `Resend OTP (${resendCooldown}s)`
+                            : "Resend OTP"}
+                    </Button>
+
                     <Button variant="ghost" onClick={() => setIsOtpSent(false)}>
-                        Back
+                        ← Back
                     </Button>
                 </div>
             ) : (
@@ -125,8 +159,11 @@ function SignupForm() {
                                 </FormItem>
                             )}
                         />
-                        <Button type='submit' className='w-full py-5'>
-                            Register
+                        {auth.error && (
+                            <p className="text-sm text-red-500 text-center">{auth.error}</p>
+                        )}
+                        <Button type='submit' className='w-full py-5' disabled={auth.loading}>
+                            {auth.loading ? "Sending OTP..." : "Register"}
                         </Button>
                     </form>
                 </Form>

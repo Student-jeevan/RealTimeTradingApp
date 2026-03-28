@@ -8,8 +8,13 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * Computes realized and unrealized PnL using FIFO cost-basis method.
@@ -20,8 +25,11 @@ import java.util.Map;
 @Service
 public class PnLCalculator {
 
+    private static final Logger log = LoggerFactory.getLogger(PnLCalculator.class);
+
     @Autowired
     private TradeAnalyticsRepository tradeAnalyticsRepo;
+
 
     @Autowired
     private AssetRepository assetRepository;
@@ -73,24 +81,47 @@ public class PnLCalculator {
     /**
      * Compute total unrealized PnL across all open positions for a user.
      *
+     * FIX N+1: Previously called getAverageCostBasis() per asset in a loop
+     * (2 queries × N assets). Now loads all cost bases in a single aggregated query.
+     *
      * @param userId       the user
      * @param currentPrices map of coinId -> currentPrice
      * @return sum of (currentPrice - avgCostBasis) * holdingQty
      */
     public BigDecimal calculateTotalUnrealizedPnl(Long userId, Map<String, Double> currentPrices) {
         List<Asset> assets = assetRepository.findByUserId(userId);
+        if (assets.isEmpty()) return BigDecimal.ZERO;
+
+        // Single query: get avg cost basis for all coins this user has bought
+        Map<String, BigDecimal> avgCostBasisMap = new HashMap<>();
+        try {
+            List<Object[]> rows = tradeAnalyticsRepo.getAvgCostBasisPerCoin(userId);
+            for (Object[] row : rows) {
+                String coinId = (String) row[0];
+                BigDecimal avgCost = row[1] instanceof BigDecimal bd
+                        ? bd
+                        : BigDecimal.valueOf(((Number) row[1]).doubleValue());
+                avgCostBasisMap.put(coinId, avgCost);
+            }
+        } catch (Exception e) {
+            // Fallback: use per-asset query if batched query fails
+            log.warn("[PnLCalculator] Batched cost-basis query failed, falling back to per-asset queries: {}", e.getMessage());
+        }
+
         BigDecimal totalUnrealized = BigDecimal.ZERO;
 
         for (Asset asset : assets) {
             String coinId = asset.getCoin().getId();
             double holdingQty = asset.getQuantity();
-
             if (holdingQty <= 0) continue;
 
             Double currentPrice = currentPrices.get(coinId);
             if (currentPrice == null) continue;
 
-            BigDecimal avgCost = getAverageCostBasis(userId, coinId);
+            // Use batched result; fall back to individual query if not present
+            BigDecimal avgCost = avgCostBasisMap.computeIfAbsent(coinId,
+                    id -> getAverageCostBasis(userId, id));
+
             if (avgCost.compareTo(BigDecimal.ZERO) == 0) continue;
 
             // unrealized = (currentPrice - avgCost) * qty

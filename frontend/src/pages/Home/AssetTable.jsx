@@ -23,9 +23,11 @@ const AssetTable = ({ coin, category }) => {
     return `$${num.toLocaleString()}`;
   };
 
+  // ScrollArea must wrap the Table, not be inside it.
+  // Having a <div> (ScrollArea) inside <table> is invalid HTML and causes a render crash.
   return (
-    <Table className="w-full">
-      <ScrollArea className={`${category === "all" ? "h-[50vh]" : "h-[55vh]"}`}>
+    <ScrollArea className={`${category === "all" ? "h-[50vh]" : "h-[55vh]"}`}>
+      <Table className="w-full">
         <TableHeader>
           <TableRow className="border-b border-border/20 hover:bg-transparent">
             <TableHead className="w-[40px] text-muted-foreground text-[11px] font-semibold">#</TableHead>
@@ -38,7 +40,7 @@ const AssetTable = ({ coin, category }) => {
         </TableHeader>
 
         <TableBody>
-          {coin.map((item, index) => {
+          {(coin || []).map((item, index) => {
             const changePercent = item.price_change_percentage_24h || 0;
             const isPositive = changePercent >= 0;
 
@@ -84,8 +86,8 @@ const AssetTable = ({ coin, category }) => {
             );
           })}
         </TableBody>
-      </ScrollArea>
-    </Table>
+      </Table>
+    </ScrollArea>
   );
 };
 
