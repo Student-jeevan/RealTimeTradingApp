@@ -1,7 +1,5 @@
 package com.jeevan.TradingApp.chatbot.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jeevan.TradingApp.chatbot.domain.ChatIntent;
 import com.jeevan.TradingApp.chatbot.dto.IntentResult;
 import com.jeevan.TradingApp.modal.*;
@@ -30,20 +28,16 @@ public class DataResolverService {
     private final AssetService assetService;
     private final OrderService orderService;
     private final CoinService coinService;
-    private final ObjectMapper objectMapper;
-
     public DataResolverService(
             WalletService walletService,
             AssetService assetService,
             OrderService orderService,
-            CoinService coinService,
-            ObjectMapper objectMapper
+            CoinService coinService
     ) {
         this.walletService = walletService;
         this.assetService = assetService;
         this.orderService = orderService;
         this.coinService = coinService;
-        this.objectMapper = objectMapper;
     }
 
     /**

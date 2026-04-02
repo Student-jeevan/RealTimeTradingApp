@@ -1,14 +1,11 @@
 package com.jeevan.TradingApp.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Redis-based hot cache for market prices.
@@ -21,8 +18,6 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 public class MarketDataCacheService {
-
-    private static final Logger log = LoggerFactory.getLogger(MarketDataCacheService.class);
 
     private static final String KEY_PREFIX = "market:price:";
     private static final Duration PRICE_TTL = Duration.ofMinutes(5);
@@ -43,7 +38,6 @@ public class MarketDataCacheService {
      * Get the latest cached price for a coin.
      * Returns null if not in cache (expired or never set).
      */
-    @SuppressWarnings("unchecked")
     public Map<String, Object> getPrice(String coinId) {
         String key = KEY_PREFIX + coinId;
         Map<Object, Object> entries = redisTemplate.opsForHash().entries(key);

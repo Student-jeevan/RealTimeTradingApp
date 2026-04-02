@@ -3,7 +3,6 @@ package com.jeevan.TradingApp.service;
 import com.jeevan.TradingApp.config.JwtProvider;
 import com.jeevan.TradingApp.domain.VerificationType;
 import com.jeevan.TradingApp.modal.TwoFactorAuth;
-import com.jeevan.TradingApp.modal.TwoFactorOTP;
 import com.jeevan.TradingApp.modal.User;
 import com.jeevan.TradingApp.repository.UserRepository;
 import com.jeevan.TradingApp.exception.ResourceNotFoundException;

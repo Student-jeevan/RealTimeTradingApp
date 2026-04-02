@@ -1,7 +1,6 @@
 package com.jeevan.TradingApp.modal;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.jeevan.TradingApp.domain.USER_ROLE;
 import jakarta.persistence.*;
 import lombok.Data;
 

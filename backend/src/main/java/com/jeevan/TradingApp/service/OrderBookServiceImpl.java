@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@SuppressWarnings("null") // JPA findById/save return types lack @NonNull annotations; runtime correctly non-null
 public class OrderBookServiceImpl implements OrderBookService {
 
     @Autowired

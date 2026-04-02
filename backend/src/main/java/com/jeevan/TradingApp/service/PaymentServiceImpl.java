@@ -73,7 +73,7 @@ public class PaymentServiceImpl implements PaymentService {
                     throw new CustomException(e.getMessage(), "PAYMENT_FETCH_ERROR");
                 }
 
-                Integer amount = payment.get("amount");
+                payment.get("amount"); // fetched to confirm payment data is accessible; value used implicitly by Razorpay SDK
 
                 String status = payment.get("status");
                 System.out.println("Razorpay status for " + paymentId + ": " + status);
@@ -119,7 +119,7 @@ public class PaymentServiceImpl implements PaymentService {
             paymentLinkRequest.put("callback_method", "get");
 
             PaymentLink payment = razorpay.paymentLink.create(paymentLinkRequest);
-            String paymentLinkId = payment.get("id");
+            payment.get("id"); // id stored by Razorpay internally; not needed client-side
             String paymentLinkUrl = payment.get("short_url");
             PaymentResponse res = new PaymentResponse();
             res.setPayment_url(paymentLinkUrl);

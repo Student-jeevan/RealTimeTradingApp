@@ -2,7 +2,6 @@ package com.jeevan.TradingApp.service;
 
 import com.jeevan.TradingApp.modal.Coin;
 
-import java.util.List;
 
 import org.springframework.data.domain.Page;
 

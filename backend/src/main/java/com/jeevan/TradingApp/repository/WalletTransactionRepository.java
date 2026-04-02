@@ -1,6 +1,5 @@
 package com.jeevan.TradingApp.repository;
 
-import com.jeevan.TradingApp.modal.Wallet;
 import com.jeevan.TradingApp.modal.WalletTransaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 

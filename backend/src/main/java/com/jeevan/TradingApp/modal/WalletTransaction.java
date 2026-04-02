@@ -1,6 +1,5 @@
 package com.jeevan.TradingApp.modal;
 
-import com.jeevan.TradingApp.domain.WalletTransactionType;
 import jakarta.persistence.*;
 import lombok.Data;
 

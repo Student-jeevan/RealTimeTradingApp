@@ -3,11 +3,9 @@ package com.jeevan.TradingApp.service;
 import com.jeevan.TradingApp.modal.Coin;
 import com.jeevan.TradingApp.modal.User;
 import com.jeevan.TradingApp.modal.Watchlist;
-import com.jeevan.TradingApp.repository.WalletRepository;
 import com.jeevan.TradingApp.repository.WatchlistRepository;
 import com.jeevan.TradingApp.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 

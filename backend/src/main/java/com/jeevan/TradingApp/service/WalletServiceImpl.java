@@ -24,8 +24,6 @@ public class WalletServiceImpl implements WalletService {
     @Autowired
     private LedgerService ledgerService;
 
-    @Autowired
-    private FeeService feeService;
 
     private void populateAvailableBalance(Wallet wallet) {
         if (wallet == null) {

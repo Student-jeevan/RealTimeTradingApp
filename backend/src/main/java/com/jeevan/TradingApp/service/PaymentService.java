@@ -4,8 +4,6 @@ import com.jeevan.TradingApp.domain.PaymentMethod;
 import com.jeevan.TradingApp.modal.PaymentOrder;
 import com.jeevan.TradingApp.modal.User;
 import com.jeevan.TradingApp.response.PaymentResponse;
-import com.razorpay.RazorpayException;
-import com.stripe.exception.StripeException;
 
 public interface PaymentService {
     PaymentOrder createOrder(User user, Long amount, PaymentMethod paymentMethod);

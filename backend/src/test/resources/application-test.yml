@@ -1,0 +1,68 @@
+# ============================================================
+# application-test.yml
+# Applied automatically for every test class via @ActiveProfiles("test")
+# ============================================================
+
+spring:
+  # ── Database ─────────────────────────────────────────────
+  # Testcontainers will override the URL at runtime via @DynamicPropertySource.
+  # H2 is used for @DataJpaTest slices (fast, in-memory).
+  datasource:
+    url: jdbc:h2:mem:trading_test;DB_CLOSE_DELAY=-1;MODE=MySQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: create-drop        # fresh schema for every test run
+    show-sql: false
+    database-platform: org.hibernate.dialect.H2Dialect
+
+  # ── Redis ────────────────────────────────────────────────
+  # Overridden by @DynamicPropertySource in integration tests
+  # that start a Redis Testcontainer.
+  # Unit tests use an embedded Redis started by RedisTestConfig.
+  data:
+    redis:
+      host: localhost
+      port: 6370          # non-default port so it doesn't clash with any running Redis
+
+  # ── Kafka ────────────────────────────────────────────────
+  # Overridden by @EmbeddedKafka / @DynamicPropertySource in tests.
+  kafka:
+    bootstrap-servers: localhost:9093
+    consumer:
+      auto-offset-reset: earliest
+      group-id: test-group
+    producer:
+      retries: 0          # no retries in tests — fail fast
+
+  # ── Mail ─────────────────────────────────────────────────
+  # Use a no-op/fake SMTP so mail tests don't need a real server.
+  mail:
+    host: localhost
+    port: 25
+    username: test
+    password: test
+
+# ── Fee configuration ────────────────────────────────────
+trading:
+  fee:
+    percentage: 0.1
+
+# ── Payment gateways (mocked in tests) ──────────────────
+stripe:
+  api:
+    key: sk_test_dummy
+razorpay:
+  api:
+    key: rzp_test_dummy
+    secret: test_secret
+
+# ── Logging ──────────────────────────────────────────────
+logging:
+  level:
+    root: WARN
+    com.jeevan.TradingApp: DEBUG
+    org.springframework.kafka: WARN
+    org.testcontainers: INFO

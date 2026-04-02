@@ -11,7 +11,6 @@ import com.jeevan.TradingApp.service.WalletService;
 import com.jeevan.TradingApp.service.WithdrawalService;
 import com.jeevan.TradingApp.domain.WalletTransactionType;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -79,7 +78,7 @@ public class WithdrawalController {
     public ResponseEntity<List<Withdrawal>> getAllWithdrawals(
             @RequestHeader("Authorization") String jwt) {
 
-        User admin = getAdminUser(jwt);
+        getAdminUser(jwt);
         return ResponseEntity.ok(withdrawalService.getAllWithdrawalRequest());
     }
 

@@ -1,7 +1,5 @@
 package com.jeevan.TradingApp.modal;
 
-import com.jeevan.TradingApp.domain.OrderStatus;
-import com.jeevan.TradingApp.domain.OrderType;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;

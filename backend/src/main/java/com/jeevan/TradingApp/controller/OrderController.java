@@ -10,7 +10,6 @@ import com.jeevan.TradingApp.service.OrderService;
 import com.jeevan.TradingApp.service.UserService;
 import com.jeevan.TradingApp.exception.UnauthorizedAccessException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

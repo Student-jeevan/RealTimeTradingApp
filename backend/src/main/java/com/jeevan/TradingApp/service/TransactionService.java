@@ -4,7 +4,6 @@ import com.jeevan.TradingApp.domain.WalletTransactionType;
 import com.jeevan.TradingApp.modal.Wallet;
 import com.jeevan.TradingApp.modal.WalletTransaction;
 
-import java.time.LocalDate;
 import java.util.List;
 
 public interface TransactionService {
